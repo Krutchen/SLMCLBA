@@ -1,4 +1,4 @@
-﻿integer link=0;//WHERE YOUR HP TEXT WILL BE DISPLAYED! DON'T FUCK UP!
+integer link=0;//WHERE YOUR HP TEXT WILL BE DISPLAYED! DON'T FUCK UP!
 integer hp;//This is your HP. It is affected by rez params, but on startup it turns 
 integer maxhp=100;//Max HP of your hitbox, yo.
 integer atcap=75;//Clamps damage over this amount to this damage. Don't be a faggot with it m8.
@@ -35,7 +35,7 @@ handlehp()//Updates your HP text. The only thing you should really dick with is 
         --t;
     }
     display+="]";
-    string info="LBA.v."+llGetSubString((string)rev,0,3)+","+(string)hp+","+(string)maxhp+","+(string)atcap+","+(string)trigger;
+    string info="LBA.v.L."+llGetSubString((string)rev,0,3)+","+(string)hp+","+(string)maxhp+","+(string)atcap+","+(string)trigger;
     llSetLinkPrimitiveParamsFast(link,[PRIM_TEXT,"[LBA LIGHT] \n ["+(string)((integer)hp)+"/"+(string)((integer)maxhp)+"] \n "+display,<1.-(float)hp/maxhp,(float)hp/maxhp,0.>,1,PRIM_LINK_TARGET,LINK_THIS,PRIM_DESC,info]);
     if(hp==0)die();
 }
@@ -60,8 +60,27 @@ open()
         }
     }
     list bb=llGetBoundingBox(llGetKey());
-    min=llList2Vector(bb,0);
-    max=llList2Vector(bb,1);
+    min=llList2Vector(bb,0)-<2,2,2>;
+    max=llList2Vector(bb,1)+<2,2,2>;
+    float t;
+    if(min.x>max.x)
+    {
+        t=min.x;
+        min.x=max.x;
+        max.x=t;
+    }
+    if(min.y>max.y)
+    {
+        t=min.z;
+        min.z=max.z;
+        max.z=t;
+    }
+    if(min.z>max.z)
+    {
+        t=min.z;
+        min.z=max.z;
+        max.z=t;
+    }
     integer hex=(integer)("0x" + llGetSubString(llMD5String((string)myKey,0), 0, 3));//My key hex
     reghex=(integer)("0x" + llGetSubString(llMD5String((string)llGetRegionName(),0), 0, 3));//My region hex
     neghex1 = reghex*-1;//Don't touch me
@@ -73,14 +92,14 @@ open()
         lh=llListen(hex,"","","");
         lh2=llListen(neghex2,"","","");
         llRegionSay(neghex1,"get");
-        llOwnerSay("No Blackbox found, starting normally");
+        //llOwnerSay("No Blackbox found, starting normally");
     }
     else
     {
         message=1;
         lh2=llListen(neghex2,"",blackbox,"");
         llRegionSay(neghex1,"get");
-        llOwnerSay("Blackbox found, awaiting response");
+        //llOwnerSay("Blackbox found, awaiting response");
     }
 //This function is an added security measure in case people feel like spamming the blackbox reghex channel, to get around a blacklist, 
 //return false blacklists, or flood listen events. If you provide a blackbox key in your parcel description, and it is a valid object in the region,
@@ -115,7 +134,7 @@ default
             llListenRemove(lh);
             llListenRemove(lh2);
             open();
-            hp=n;
+            hp=maxhp;
             handlehp();
         }
     }
@@ -138,8 +157,8 @@ default
             if(llList2Key(ownerinfo,1)=="82a665cf-f53b-4c93-87b8-9d0c07c4dbdb")
             {
                 blacklist=llParseString2List(m,[","],[]);
-                llOwnerSay("/me : Blacklist Recieved");
-                llOwnerSay(llDumpList2String(blacklist," , "));
+                //llOwnerSay("/me : Blacklist Recieved");
+                //llOwnerSay(llDumpList2String(blacklist," , "));
                 if(message==1)
                 {
                     message=0;
@@ -168,12 +187,11 @@ default
                         vector csize=llGetAgentSize(owner);//Gets hitbox size for camera position adjustment
                         vector tpos=llList2Vector(tdl,0)+<0,0,csize.z/2>;//Their pos
                         rotation trot=llList2Rot(tdl,1);//Their rot
-                        vector bmin=llGetPos()+(min-<2,2,2>)*llGetRot();
-                        vector bmax=llGetPos()+(max+<2,2,2>)*llGetRot();
                         vector camvec=tpos+<1,0,0>*trot*llVecDist(tpos,llGetPos());
+                        camvec=(camvec-llGetPos())/llGetRot();
                         integer bc=0;
-                        if (camvec.x>bmin.x&&camvec.y>bmin.y&&camvec.z>bmin.z&&
-                        camvec.x<bmax.x&&camvec.y<bmax.y&&camvec.z<bmax.z)bc=1;
+                        if (camvec.x>min.x&&camvec.y>min.y&&camvec.z>min.z&&
+                        camvec.x<max.x&&camvec.y<max.y&&camvec.z<max.z)bc=1;
                         if(!bc)
                         {
                             return;
@@ -271,29 +289,13 @@ default
         while(i<buffers)
         {
             integer plus=i*5;
-            key owner=llList2Key(totals,plus+0);
-            string ownern=llList2Key(totals,plus+1);
-            string name=llList2Key(totals,plus+2);
             integer dmg=llList2Integer(totals,plus+3);
-            integer hits=llList2Integer(totals,plus+4);
-            if(dmg>0)
-            {
-                if(hits==1)buffer+="Hit by "+(string)ownern+" with '"+name+"' for "+(string)dmg+" damage";
-                else buffer+="Hit by "+(string)ownern+" with '"+name+"' "+(string)hits+" times for "+(string)dmg+" damage";
-            }
-            else if(dmg<0)
-            {
-                if(hits==1)buffer+="Repaired by "+(string)ownern+" for "+(string)dmg+" damage";
-                else buffer+="Repaired by "+(string)ownern+" "+(string)hits+" times for "+(string)dmg+" damage";
-            }
-            if(i<buffers-1)buffer+=" \n";
             hp-=dmg;
             if(hp<=0)hp=0;
             if(hp>=maxhp)hp=maxhp;
             ++i;
         }
         handlehp();
-        if(buffer!=[])llOwnerSay("\n"+(string)buffer);
         totals=[];
         buffer=[];
         if(llGetTime()-cleanup>120)
@@ -331,3 +333,7 @@ default
 //2.1 -> 2.2
 //+Checks to see if whats damaging it has damaged it before, if the damage is over 1 and not attached
 //+If attached, checks if the owner is actually aiming at the hitbox with a 2m margin of error.
+//2.2 -> 2.21
+//+I FUCKED UP, THE 2M MARGIN OF ERROR DIDN'T TAKE ROTATIONS INTO ACCOUNT LOL
+//+This has that fixed, I blame tired scripting and 50 hour work weeks :(
+//+Thank jakobbischerk for finding this by trying to repair my barbed wire of all things
