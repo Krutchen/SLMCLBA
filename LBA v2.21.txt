@@ -335,7 +335,7 @@ default
 //2.1 -> 2.2
 //+Checks to see if whats damaging it has damaged it before, if the damage is over 1 and not attached
 //+If attached, checks if the owner is actually aiming at the hitbox with a 2m margin of error.
-//2.1 -> 2.2
+//2.2 -> 2.21
 //+I FUCKED UP, THE 2M MARGIN OF ERROR DIDN'T TAKE ROTATIONS INTO ACCOUNT LOL
 //+This has that fixed, I blame tired scripting and 50 hour work weeks :(
 //+Thank jakobbischerk for finding this by trying to repair my barbed wire of all things
