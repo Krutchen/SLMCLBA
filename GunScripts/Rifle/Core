@@ -1,0 +1,169 @@
+integer a=30;
+integer rl=0;
+integer v=200;
+integer s=0;
+rel()
+{
+rl=1;
+stop();
+llStartAnimation("NV_Rifle01_Male_Reload_01");
+llSetTimerEvent(3.4*llGetRegionTimeDilation());
+llPlaySound("f5ff7fc3-9b05-66f5-84d1-8ada62fd5692",1);
+llSetLinkPrimitiveParamsFast(4,[PRIM_COLOR,0,<1,1,1>,0]);
+}
+stop()
+{
+    llSetLinkPrimitiveParamsFast(1,[PRIM_COLOR,0,<1,1,1>,0]);
+    llSay(-9872,(string)a);
+}
+integer hits;
+integer i;
+vector pos;
+vector dv;
+key agent;
+float os;
+string help="/me :Displaying Commands
+Commands are not case specific
+: /1 'r'/'rel'/'reload' - Reloads the weapon
+: /1 'reset' - Resets your weapon's scripts
+: /1 'vel:##' - Sets your weapon's velocity
+: /1 'help' - Displays this message
+";
+default
+{
+    state_entry()
+    {
+        llSetLinkPrimitiveParamsFast(LINK_SET,[PRIM_COLOR,ALL_SIDES,<1,1,1>,1]);
+        llSetScriptState("*Anim v2.0",1);
+        llSetScriptState("*",1);
+        llSetScriptState("**",1);
+        llResetOtherScript("*Anim v2.0");
+        llRequestPermissions(llGetOwner(),0x4|0x10|0x400|0x8000);
+        llOwnerSay("/me :TYPE /1 HELP TO DISPLAY HELP");
+        llTriggerSound("5239493c-e4bb-ad63-9050-86899a09c88c",1);
+        stop();
+        llListen(1,"",llGetOwner(),"");        
+        llSay(-9872,(string)a);
+    }
+    listen(integer c, string n, key i, string m)
+    {
+        m=llToLower(m);
+        if(m=="r"&&rl==0)
+        {
+        if(a!=30)rel();
+        llRequestPermissions(llGetOwner(),0x4|0x10|0x400);
+        }
+        if(llGetSubString(m,0,3)=="vel:")
+        {
+        m=llDeleteSubString(m,0,3);
+        if((integer)m<=250&&(integer)m>=50)
+        {
+            v=(integer)m;
+            llOwnerSay("/me :Velocity: "+m+" m/s");
+            llMessageLinked(LINK_SET,v,(string)v,"");
+        }
+        else llOwnerSay("Invalid Velocity!");
+        }
+        if(m=="reset")
+        {
+            llResetOtherScript("*");
+            llResetOtherScript("**");
+            llResetScript();
+        }
+        if(m=="help")
+        {
+            llOwnerSay(help);
+        }
+        if(m=="sling"||m=="s")
+        {
+            llPlaySound("bcf6df91-c30b-b688-0c0b-79a929ffd240",1.0);
+            llSetScriptState("*Anim v2.0",0);
+            llSetScriptState("*",0);
+            llSetScriptState("**",0);
+            llSetLinkAlpha(-1,0,-1);
+            llResetAnimationOverride("ALL");
+            llReleaseControls();
+            state safe;
+        }
+    }
+    attach(key id)
+    {
+        if(id!=NULL_KEY)
+        {
+            llOwnerSay("Authenticated!");
+            llResetScript();
+        }
+    }
+    run_time_permissions(integer p)
+    {
+        if( p & 0x4 | 0x10 | 0x400 )
+        {
+            llTakeControls(0x40000000,TRUE,FALSE);
+        }
+    }
+    timer()
+    {
+        if(rl==1)
+        {
+            rl=0;
+            a=30;
+            llSetLinkPrimitiveParamsFast(4,[PRIM_COLOR,0,<1,1,1>,1]);
+            llSetTimerEvent(0);
+            llSay(-9872,(string)a);
+        }
+    }
+    control(key i, integer l, integer e)
+    {
+        if(l&e&0x40000000)
+        {
+            if(a>0&&rl==0)
+            {
+            llSetLinkPrimitiveParamsFast(1,[PRIM_COLOR,0,<.5,1,1>,1]);
+            s=1;
+            }
+            if(a<=0&&rl==0)
+            {
+                rel();
+            }
+        }
+        if(~l&e&0x40000000)
+        {
+            if(rl==0)
+            {
+                llSetLinkPrimitiveParamsFast(1,[PRIM_COLOR,0,<1,1,1>,0]);
+                stop();
+            }
+        }
+    }
+    object_rez(key id)
+    {
+        llTriggerSound("6dad76eb-11b2-86e3-e4e4-ce2dd7c27dbd",1);
+        if(--a<=0)
+        {
+            if(rl==0)
+            {
+                stop();
+            }
+        }
+    }
+}
+state safe
+{
+    state_entry()
+    {
+        llListen(1,"",llGetOwner(),"");
+    }
+    listen(integer c, string n, key i, string m)
+    {
+        m=llToLower(m);
+        if(m=="draw"||m=="d")
+        {
+            llPlaySound("bcf6df91-c30b-b688-0c0b-79a929ffd240",1.0);
+            state default;
+        }
+    }
+    attach(key id)
+    {
+        llListen(1,"",llGetOwner(),"");
+    }
+}
