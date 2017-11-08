@@ -1,0 +1,64 @@
+integer ml=0;
+integer cml;
+AnimNML()
+{
+    llSetAnimationOverride("Standing","NV_Rifle01_Male_Idle_01");
+    llSetAnimationOverride("Running","NV_Rifle01_Male_Run_01");
+    llSetAnimationOverride("Walking","NV_Rifle01_Male_Walk_01");
+    llSetAnimationOverride("Turning Left","NV_Rifle01_Male_Walk_01");
+    llSetAnimationOverride("Turning Right","NV_Rifle01_Male_Walk_01");
+    llSetAnimationOverride("Crouching","NV_Rifle01_Male_Crouch_01");
+    llSetAnimationOverride("Sitting","NV_Rifle01_Male_Crouch_01");
+    llSetAnimationOverride("Sitting on Ground","NV_Rifle01_Male_Crouch_01");
+    llSetAnimationOverride("CrouchWalking","NV_Rifle01_Male_AimCrouchWalk_01");
+}
+AnimCML()
+{
+    llSetAnimationOverride("Standing","NV_Rifle01_Male_Aim_01");
+    llSetAnimationOverride("Running","NV_Rifle01_Male_AimRun_02");
+    llSetAnimationOverride("Walking","NV_Rifle01_Male_AimWalk_01");
+    llSetAnimationOverride("Turning Left","NV_Rifle01_Male_AimWalk_01");
+    llSetAnimationOverride("Turning Right","NV_Rifle01_Male_AimWalk_01");
+    llSetAnimationOverride("Crouching","NV_Rifle01_Male_AimCrouch_01");
+    llSetAnimationOverride("Sitting","NV_Rifle01_Male_AimCrouch_01");
+    llSetAnimationOverride("Sitting on Ground","NV_Rifle01_Male_AimCrouch_01");
+    llSetAnimationOverride("CrouchWalking","NV_Rifle01_Male_AimCrouchWalk_01");
+}
+default
+{
+    state_entry()
+    {
+        llRequestPermissions(llGetOwner(),0x10|0x8000);
+    }
+    attach(key id)
+    {
+        if(id!=NULL_KEY)llResetScript();
+        else llResetAnimationOverride("ALL");
+    }
+    run_time_permissions(integer p)
+    {
+        if(p!=0)
+        {
+            llResetAnimationOverride("ALL");
+            llSetTimerEvent(.3);
+            llSetAnimationOverride("Jumping","NV_Rifle01_Male_Jump_01");
+            AnimNML();
+        }
+    }
+    timer()
+    {
+        cml=(llGetAgentInfo(llGetOwner())&0x0008);
+        if(cml!=ml)
+        {
+            if(cml)
+            {
+                AnimCML();
+            }
+            else
+            {
+                AnimNML();
+            }
+        }
+        ml=cml;
+    }
+}
