@@ -1,0 +1,145 @@
+integer a=15;
+integer rl=0;
+integer v=200;
+rel()
+{
+    llSetLinkPrimitiveParamsFast(1,[PRIM_COLOR,ALL_SIDES,<1,1,1>,0]);
+    rl=1;
+    llStartAnimation("NV_Pistol_Right_Reload_01");
+    llSetTimerEvent(2.15*llGetRegionTimeDilation());
+    llPlaySound("9eb5191c-f402-0bdb-1f2a-934fc2fcd98f",1);
+}
+string help="/me :HELP MESSAGE: 
+All Commands are on channel 1. Commands are not case specific!
+''r''/''rel''/''reload'' - Reloads the weapon's magazine, and regains controls if lost.
+''vel:###'' - Sets the velocity of for physical rounds
+''reset'' - Resets the weapon
+''sling2''/''s2'' - Holsters your weapon.
+''draw2''/''d2'' - Draws your weapon.";
+default
+{
+    state_entry()
+    {
+        llRequestPermissions(llGetOwner(),0x4|0x10|0x400|0x8000);
+        llListen(1,"",llGetOwner(),"");
+        llSetScriptState("*Anim v2.0",1);
+        llSetScriptState("*",1);
+        llSetLinkPrimitiveParamsFast(-1,[PRIM_COLOR,ALL_SIDES,<1,1,1>,1,PRIM_LINK_TARGET,1,PRIM_COLOR,ALL_SIDES,<1,1,1>,0]);
+        llOwnerSay("TYPE /1 HELP FOR COMMANDS");
+        llPlaySound("bcf6df91-c30b-b688-0c0b-79a929ffd240",1.0);
+    }
+    attach(key id)
+    {
+        if(id!=NULL_KEY)
+        {
+        llRequestPermissions(llGetOwner(),0x4|0x10|0x400|0x8000);
+        }
+    }
+    run_time_permissions(integer p)
+    {
+        if(p)
+        {
+            llTakeControls(0x40000000,1,0);
+        }
+    }
+    control(key i, integer l, integer e)
+    {
+        if(l&e&0x40000000)
+        {
+            if(a>0&&rl==0)
+            {
+                string anim=llGetAnimationOverride(llGetAnimation(llGetOwner()));
+                if(anim=="Chaos_LasPistol_Right_Aim_01")llStartAnimation("Chaos_LasPistol_Right_Recoil_01");
+                if(anim=="Chaos_LasPistol_Right_AimCrouch_01")llStartAnimation("Chaos_LasPistol_Right_RecoilCrouch_01");
+                llTriggerSound("6f6fb259-126f-2600-5089-2968c821cbcf",1.0);
+                llSetLinkPrimitiveParamsFast(1,[PRIM_COLOR,0,<1,1,1>,1]);
+                --a;
+                llSleep(.04*llGetRegionTimeDilation());
+            }
+            if(a<=0&&rl==0)rel();
+        }
+    }
+    changed(integer c)
+    {
+        if(c&CHANGED_TELEPORT)
+        {
+            a=15;
+        }
+        if(c&CHANGED_OWNER)
+        {
+            llResetScript();
+        }
+    }
+    listen(integer c, string n, key i, string m)
+    {
+        m=llToLower(m);
+        if(m=="r"||m=="rel"||m=="reload"&&rl==0)
+        {
+        if(a!=20)rel();
+        llRequestPermissions(llGetOwner(),0x4|0x10|0x400|0x8000);
+        }
+        if(llGetSubString(m,0,3)=="vel:")
+        {
+        m=llDeleteSubString(m,0,3);
+        if((integer)m<=200&&(integer)m>=50)
+        {
+            v=(integer)m;
+            llOwnerSay("/me :Velocity: "+m+" m/s");
+            llMessageLinked(0,v,"","");
+        }
+        else llOwnerSay("Invalid Velocity! Input a value between 50 and 200!");
+        }
+        if(m=="reset")
+        {
+            llResetOtherScript("*Fury");
+            llResetScript();
+        }
+        if(m=="help")
+        {
+            llOwnerSay(help);
+        }
+        if(m=="sling2"||m=="s2")
+        {
+            llPlaySound("bcf6df91-c30b-b688-0c0b-79a929ffd240",1.0);
+            llSetScriptState("*Anim v2.0",0);
+            llSetScriptState("*",0);
+            llSetLinkPrimitiveParamsFast(-1,[PRIM_COLOR,ALL_SIDES,<1,1,1>,0,PRIM_LINK_TARGET,1,PRIM_COLOR,ALL_SIDES,<1,1,1>,0]);
+            llResetAnimationOverride("ALL");
+            llReleaseControls();
+            state safe;
+        }
+    }
+    timer()
+    {
+        if(rl==1)
+        {
+            rl=0;
+            a=15;
+            llSetTimerEvent(0);
+            llSay(-9872,(string)a);
+        }
+    }
+}
+state safe
+{
+    state_entry()
+    {
+        llListen(1,"",llGetOwner(),"");
+    }
+    listen(integer c, string n, key i, string m)
+    {
+        m=llToLower(m);
+        if(m=="draw2"||m=="d2")
+        {   
+            llSetLinkPrimitiveParamsFast(-1,[PRIM_COLOR,ALL_SIDES,<1,1,1>,1,PRIM_LINK_TARGET,1,PRIM_COLOR,ALL_SIDES,<1,1,1>,0]);
+            state default;
+        }
+    }
+    attach(key id)
+    {
+        if(id!=NULL_KEY)
+        {
+            llListen(1,"",llGetOwner(),"");
+        }
+    }
+}
