@@ -1,0 +1,39 @@
+float vel=200;
+rotation rot;
+float spr=.01;
+default
+{
+    state_entry()
+    {
+        llRequestPermissions(llGetOwner(),0x4|0x400);
+    }
+    run_time_permissions(integer p)
+    {
+        if(p!=0)
+        {
+            llTakeControls(0x40000000,1,1);
+        }
+    }
+    attach(key id)
+    {
+        if(id!=NULL_KEY)llResetScript();
+    }
+    changed(integer c)
+    {
+        vector color=llGetColor(0);
+        if(color.x==.5)
+        {
+            @loop;
+            rot=llGetCameraRot()*(llEuler2Rot(<llFrand(spr)-spr/2,llFrand(spr)-spr/2,llFrand(spr)-spr/2>));
+            llRezAtRoot("7.62x39mm",llGetCameraPos()+<4,0,0>*llGetCameraRot()+llGetVel()*.15,<vel,0,0>*rot,rot,1);
+            llSleep(.02*llGetRegionTimeDilation());
+            if(spr<.06)spr+=.006;
+            if(llGetAlpha(0))jump loop;
+            spr=.01;
+        }
+    }
+    link_message(integer sn, integer n, string m, key i)
+    {
+        vel=n;
+    }
+}
