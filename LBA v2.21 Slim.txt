@@ -1,0 +1,66 @@
+integer hp;             //Current hp
+integer hpmax = 100;    //My default HP value
+integer cap = 0;        //Maximum damage taken per hit, leave this alone if you dont want to use cap
+integer link = 0;       //Text display link number
+integer hex;            //My channel
+key me;                 //My key
+
+updateHP()
+{
+    if(hp < 1) llDie();
+    else
+    {
+        llSetLinkPrimitiveParamsFast(link,[
+        PRIM_TEXT,"[LBA-Slim]\n[" + (string)(hp) + "/" +(string)(hpmax) + "]",<0.0,1.0,0.0>,1.0,
+        PRIM_DESC,"LBA.v.2.21," + (string)hp + "," + (string)hpmax + "," + (string)cap
+        ]);
+    }
+}
+
+init(integer s)
+{
+    if(s <= hpmax && s > 0) hp = s;
+    else hp = hpmax;
+    if(!cap) cap = hpmax;
+    me = llGetKey();
+    hex = (integer)("0x" + llGetSubString(llMD5String((string)me,0), 0, 3));
+    llListen(hex, "","","");
+    updateHP();
+}
+
+default
+{
+    state_entry()
+    {
+        init(0);
+    }
+    on_rez(integer sp)
+    {
+        init(sp);
+    }
+    collision_start(integer n)
+    {
+        while(n--)
+        {
+            if(llVecMag(llDetectedVel(n)) > 25 && llDetectedType(n) != 3) --hp;
+        }
+        updateHP();
+    }
+    listen(integer i, string s, key k, string m)
+    {
+        list l = llParseString2List(m,[","],[]);
+        string target = llList2String(l,0);
+        integer dmg = (integer)llList2String(l,1);
+        if(i == hex)
+        {
+            if(target == (string)me)
+            {
+                llOwnerSay(llKey2Name(llGetOwnerKey(k)) +" : "+ s +" : "+(string)dmg);
+                if(dmg > cap) dmg = cap;
+                hp -= dmg;
+                if(hp > hpmax) hp = hpmax;
+                updateHP();
+            }
+        }       
+    } 
+}
