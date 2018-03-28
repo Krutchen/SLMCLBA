@@ -1,7 +1,7 @@
 integer hp;             // Current hp
 integer hpmax = 25;     // My default HP value, LBA Slim is great for values less than 50
 integer cap = 0;        // Maximum damage taken per hit, leave this at 0 if you dont want to use the cap
-integer link = 1;       // Text display link number
+integer link = 0;       // Text display link number
 integer hex;            // My channel
 key me;                 // My key
 list buffer;
