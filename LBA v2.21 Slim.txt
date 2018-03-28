@@ -14,7 +14,7 @@ updateHP()
     {
         if(buffer != []) llOwnerSay(llDumpList2String(buffer, " | "));
         llSleep(0.1);
-        if(die) llMessageLinked(LINK_THIS, 1, "dead", NULL_KEY);
+        if(!die) llMessageLinked(LINK_THIS, 1, "dead", NULL_KEY);
         else llDie();
     }
     else
