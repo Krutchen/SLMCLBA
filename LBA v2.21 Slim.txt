@@ -1,18 +1,30 @@
-integer hp;             //Current hp
-integer hpmax = 100;    //My default HP value
-integer cap = 0;        //Maximum damage taken per hit, leave this alone if you dont want to use cap
-integer link = 0;       //Text display link number
-integer hex;            //My channel
-key me;                 //My key
+integer hp;             // Current hp
+integer hpmax = 25;     // My default HP value, LBA Slim is great for values less than 50
+integer cap = 0;        // Maximum damage taken per hit, leave this at 0 if you dont want to use the cap
+integer link = 1;       // Text display link number
+integer hex;            // My channel
+key me;                 // My key
+list buffer;
+integer die = TRUE;     // Does this script kill the object -OR- sends a message to a core script
+                        // for plug and play LBA
 
 updateHP()
 {
-    if(hp < 1) llDie();
+    if(hp < 1)
+    {
+        if(buffer != []) llOwnerSay(llDumpList2String(buffer, " | "));
+        llSleep(0.1);
+        if(die) llMessageLinked(LINK_THIS, 1, "dead", NULL_KEY);
+        else llDie();
+    }
     else
     {
         llSetLinkPrimitiveParamsFast(link,[
-        PRIM_TEXT,"[LBA-Slim]\n[" + (string)(hp) + "/" +(string)(hpmax) + "]",<0.0,1.0,0.0>,1.0,
-        PRIM_DESC,"LBA.v.2.21," + (string)hp + "," + (string)hpmax + "," + (string)cap
+        PRIM_TEXT,"[LBA-Slim]\n[" + (string)(hp) + "/" +(string)(hpmax) + "]",<0.0,1.0,0.0>,1.0
+        ]);
+        
+        llSetLinkPrimitiveParamsFast(LINK_THIS,[
+        PRIM_DESC,"LBA.v.2.22," + (string)hp + "," + (string)hpmax + "," + (string)cap
         ]);
     }
 }
@@ -32,7 +44,8 @@ default
 {
     state_entry()
     {
-        init(0);
+        llSetLinkPrimitiveParams(LINK_SET, [PRIM_TEXT,"", <1,1,1>,1]);
+        init(hpmax);
     }
     on_rez(integer sp)
     {
@@ -46,21 +59,36 @@ default
         }
         updateHP();
     }
-    listen(integer i, string s, key k, string m)
+    listen(integer c, string n, key id, string m)
     {
         list l = llParseString2List(m,[","],[]);
         string target = llList2String(l,0);
         integer dmg = (integer)llList2String(l,1);
-        if(i == hex)
+        if(c == hex)
         {
             if(target == (string)me)
             {
-                llOwnerSay(llKey2Name(llGetOwnerKey(k)) +" : "+ s +" : "+(string)dmg);
-                if(dmg > cap) dmg = cap;
-                hp -= dmg;
+                string name = llKey2Name(llGetOwnerKey(id));
+                if(dmg > cap) hp -= cap;
+                else hp -= dmg;
                 if(hp > hpmax) hp = hpmax;
+                integer index = llListFindList(buffer, [name]);
+                if(index < 0) buffer += [name,dmg];
+                else
+                {
+                    dmg = llList2Integer(buffer,index+1) + dmg;
+                    buffer = llListReplaceList(buffer, [name,dmg], index, index+1);
+                }
                 updateHP();
+                llSetTimerEvent(2);
             }
         }       
-    } 
+    }
+    
+    timer()
+    {
+        llOwnerSay(llDumpList2String(buffer, " | "));
+        buffer = [];
+        llSetTimerEvent(0);
+    }
 }
