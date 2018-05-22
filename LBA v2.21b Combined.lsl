@@ -39,37 +39,39 @@ key myOwner; // key of my owner
 
 UpdateHP() // checks HP and updates text
 {
-    if (textLink > -1)
-    {
-        integer t = 10;
-        string display = "[";
-        while (t)
-        {
-            if (healthAmount > ((10 - t) * maxHealth / 10)) display += "█";
-            else display += "-";
-            --t;
-        }
-        display += "]";
-        string lbaStringA;
-        string lbaStringB;
-        if (LBAType == 0) // standard LBA
-        {
-            lbaStringA = "LBA.v.";
-            lbaStringB = "[LBA]";
-        }
-        else if (LBAType == 1) // LBA Light
-        {
-            lbaStringA = "LBA.v.L.";
-            lbaStringB = "[LBA LIGHT]";
-        }
-        else if (LBAType == 2) // LBA Light Deployable
-        {
-            lbaStringA = "LBA.v.L.";
-            lbaStringB = "[LBA LIGHT]";
-        }
-        string info = lbaStringA + llGetSubString((string)versionNumber, 0, 3) + "," + (string)healthAmount + "," + (string)maxHealth + "," + (string)damageCap + "," + (string)spamTrigger;
-        llSetLinkPrimitiveParamsFast(textLink, [PRIM_TEXT, lbaStringB + "\n[" + (string)((integer)healthAmount) + "/" + (string)((integer)maxHealth) + "]\n" + display, <1 - (float)healthAmount / maxHealth, (float)healthAmount / maxHealth, 0>, 1, PRIM_LINK_TARGET, LINK_THIS, PRIM_DESC, info]);
-    }
+	string lbaStringA;
+	string lbaStringB;
+	if (LBAType == 0) // standard LBA
+	{
+		lbaStringA = "LBA.v.";
+		lbaStringB = "[LBA]";
+	}
+	else if (LBAType == 1) // LBA Light
+	{
+		lbaStringA = "LBA.v.L.";
+		lbaStringB = "[LBA LIGHT]";
+	}
+	else if (LBAType == 2) // LBA Light Deployable
+	{
+		lbaStringA = "LBA.v.L.";
+		lbaStringB = "[LBA LIGHT]";
+	}
+	string info = lbaStringA + llGetSubString((string)versionNumber, 0, 3) + "," + (string)healthAmount + "," + (string)maxHealth + "," + (string)damageCap + "," + (string)spamTrigger;
+	if (textLink > -1)
+	{
+		integer t = 10;
+		string display = "[";
+		while (t)
+		{
+			if (healthAmount > ((10 - t) * maxHealth / 10)) display += "█";
+			else display += "-";
+			--t;
+		}
+		display += "]";
+		llSetLinkPrimitiveParamsFast(textLink, [PRIM_TEXT, lbaStringB + "\n[" + (string)((integer)healthAmount) + "/" + (string)((integer)maxHealth) + "]\n" + display, <1 - (float)healthAmount / maxHealth, (float)healthAmount / maxHealth, 0>, 1]);
+		
+	}
+	llSetObjectDesc(info);
     if (healthAmount == 0) Die();
 }
 
