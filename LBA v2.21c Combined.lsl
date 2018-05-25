@@ -4,7 +4,7 @@ integer LBAType = 0; // which edition to use: 0 = LBA, 1 = LBA Light, 2 = LBA De
 //      LBA standard does not accept collisions as damage.
 //      LBA Light does not provide armor integrity reports for collisions.
 //      LBA Deployable does not provide armor integrity reports after damage/repairs.
-integer textLink = 0; // which link number to float HP text on: -1 = off, 0 = root prim, etc.
+integer textLink = 0; // which link number to float HP text on: -1 = off, 1 = root prim, etc.
 integer maxHealth = 100; // maximum health of this object; set to 0 to set with rez param
 integer damageCap = 75; // damage received is clamped to this maximum per hit
 integer spamTrigger = 50; // damage threshold that will trigger anti-spam after repeated hits
