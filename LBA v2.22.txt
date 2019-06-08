@@ -181,6 +181,14 @@ default
                     string n2=llKey2Name(owner);//Gets the owner name
                     if(n2=="")n2=owner;//If you can't get the owner name, return the key instead
                     integer dmg=(integer)llGetSubString(m,37,-1);//This is the damage, fuck you.
+                    if (atcap) // use atcap to limit repairs
+                    {
+                        if (dmg < -atcap) dmg = -atcap;
+                    }
+                    else if (dmg < -maxhp) // use maxhp to limit repairs
+                    {
+                        dmg = -maxhp;
+                    }
                     if(att)
                     {
                         list tdl=llGetObjectDetails(owner,[OBJECT_POS,OBJECT_ROT]);//target data list
