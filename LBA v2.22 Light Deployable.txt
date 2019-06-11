@@ -35,8 +35,8 @@ handlehp()//Updates your HP text. The only thing you should really dick with is 
         --t;
     }
     display+="]";
-    string info="LBA.v."+llGetSubString((string)rev,0,3)+","+(string)hp+","+(string)maxhp+","+(string)atcap+","+(string)trigger;
-    llSetLinkPrimitiveParamsFast(link,[PRIM_TEXT,"[LBA] \n ["+(string)((integer)hp)+"/"+(string)((integer)maxhp)+"] \n "+display,<1.-(float)hp/maxhp,(float)hp/maxhp,0.>,1,PRIM_LINK_TARGET,LINK_THIS,PRIM_DESC,info]);
+    string info="LBA.v.L."+llGetSubString((string)rev,0,3)+","+(string)hp+","+(string)maxhp+","+(string)atcap+","+(string)trigger;
+    llSetLinkPrimitiveParamsFast(link,[PRIM_TEXT,"[LBA LIGHT] \n ["+(string)((integer)hp)+"/"+(string)((integer)maxhp)+"] \n "+display,<1.-(float)hp/maxhp,(float)hp/maxhp,0.>,1,PRIM_LINK_TARGET,LINK_THIS,PRIM_DESC,info]);
     if(hp==0)die();
 }
 open()
@@ -92,14 +92,14 @@ open()
         lh=llListen(hex,"","","");
         lh2=llListen(neghex2,"","","");
         llRegionSay(neghex1,"get");
-        llOwnerSay("No Blackbox found, starting normally");
+        //llOwnerSay("No Blackbox found, starting normally");
     }
     else
     {
         message=1;
         lh2=llListen(neghex2,"",blackbox,"");
         llRegionSay(neghex1,"get");
-        llOwnerSay("Blackbox found, awaiting response");
+        //llOwnerSay("Blackbox found, awaiting response");
     }
 //This function is an added security measure in case people feel like spamming the blackbox reghex channel, to get around a blacklist, 
 //return false blacklists, or flood listen events. If you provide a blackbox key in your parcel description, and it is a valid object in the region,
@@ -134,7 +134,7 @@ default
             llListenRemove(lh);
             llListenRemove(lh2);
             open();
-            hp=n;
+            hp=maxhp;
             handlehp();
         }
     }
@@ -157,8 +157,8 @@ default
             if(llList2Key(ownerinfo,1)=="82a665cf-f53b-4c93-87b8-9d0c07c4dbdb")
             {
                 blacklist=llParseString2List(m,[","],[]);
-                llOwnerSay("/me : Blacklist Recieved");
-                llOwnerSay(llDumpList2String(blacklist," , "));
+                //llOwnerSay("/me : Blacklist Recieved");
+                //llOwnerSay(llDumpList2String(blacklist," , "));
                 if(message==1)
                 {
                     message=0;
@@ -181,6 +181,14 @@ default
                     string n2=llKey2Name(owner);//Gets the owner name
                     if(n2=="")n2=owner;//If you can't get the owner name, return the key instead
                     integer dmg=(integer)llGetSubString(m,37,-1);//This is the damage, fuck you.
+                    if (atcap) // use atcap to limit repairs
+                    {
+                        if (dmg < -atcap) dmg = -atcap;
+                    }
+                    else if (dmg < -maxhp) // use maxhp to limit repairs
+                    {
+                        dmg = -maxhp;
+                    }
                     if(att)
                     {
                         list tdl=llGetObjectDetails(owner,[OBJECT_POS,OBJECT_ROT]);//target data list
@@ -289,29 +297,13 @@ default
         while(i<buffers)
         {
             integer plus=i*5;
-            key owner=llList2Key(totals,plus+0);
-            string ownern=llList2Key(totals,plus+1);
-            string name=llList2Key(totals,plus+2);
             integer dmg=llList2Integer(totals,plus+3);
-            integer hits=llList2Integer(totals,plus+4);
-            if(dmg>0)
-            {
-                if(hits==1)buffer+="Hit by "+(string)ownern+" with '"+name+"' for "+(string)dmg+" damage";
-                else buffer+="Hit by "+(string)ownern+" with '"+name+"' "+(string)hits+" times for "+(string)dmg+" damage";
-            }
-            else if(dmg<0)
-            {
-                if(hits==1)buffer+="Repaired by "+(string)ownern+" for "+(string)dmg+" damage";
-                else buffer+="Repaired by "+(string)ownern+" "+(string)hits+" times for "+(string)dmg+" damage";
-            }
-            if(i<buffers-1)buffer+=" \n";
             hp-=dmg;
             if(hp<=0)hp=0;
             if(hp>=maxhp)hp=maxhp;
             ++i;
         }
         handlehp();
-        if(buffer!=[])llOwnerSay("\n"+(string)buffer);
         totals=[];
         buffer=[];
         if(llGetTime()-cleanup>120)
@@ -320,6 +312,20 @@ default
             recent=[];
             llSetTimerEvent(0);
         }
+    }
+    collision_start(integer n)
+    {
+        while(n>-1)
+        {
+            --n;
+            integer type=llDetectedType(n);
+            if(type&0x2&&~type&0x1&&llVecMag(llDetectedVel(n))>10)
+            {
+                if(hp>0)--hp;
+                else die();
+            }
+        }
+        handlehp();
     }
 }
 //CHANGELOG ----

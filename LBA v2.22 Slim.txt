@@ -62,6 +62,14 @@ default
         list l = llParseString2List(m,[","],[]);
         string target = llList2String(l,0);
         integer dmg = (integer)llList2String(l,1);
+        if (cap) // use cap to limit repairs
+        {
+            if (dmg < -cap) dmg = -atcap;
+        }
+        else if (dmg < -hpmax) // use maxhp to limit repairs
+        {
+            dmg = -hpmax;
+        }
         if(c == hex)
         {
             if(target == (string)me)

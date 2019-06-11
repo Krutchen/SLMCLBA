@@ -1,4 +1,4 @@
-integer link=4;//WHERE YOUR HP TEXT WILL BE DISPLAYED! DON'T FUCK UP!
+integer link=0;//WHERE YOUR HP TEXT WILL BE DISPLAYED! DON'T FUCK UP!
 integer hp;//This is your HP. It is affected by rez params, but on startup it turns 
 integer maxhp=100;//Max HP of your hitbox, yo.
 integer atcap=75;//Clamps damage over this amount to this damage. Don't be a faggot with it m8.
@@ -35,8 +35,8 @@ handlehp()//Updates your HP text. The only thing you should really dick with is 
         --t;
     }
     display+="]";
-    string info="LBA.v.L."+llGetSubString((string)rev,0,3)+","+(string)hp+","+(string)maxhp+","+(string)atcap+","+(string)trigger;
-    llSetLinkPrimitiveParamsFast(link,[PRIM_TEXT,"[LBA LIGHT] \n ["+(string)((integer)hp)+"/"+(string)((integer)maxhp)+"] \n "+display,<1.-(float)hp/maxhp,(float)hp/maxhp,0.>,1,PRIM_LINK_TARGET,LINK_THIS,PRIM_DESC,info]);
+    string info="LBA.v."+llGetSubString((string)rev,0,3)+","+(string)hp+","+(string)maxhp+","+(string)atcap+","+(string)trigger;
+    llSetLinkPrimitiveParamsFast(link,[PRIM_TEXT,"[LBA] \n ["+(string)((integer)hp)+"/"+(string)((integer)maxhp)+"] \n "+display,<1.-(float)hp/maxhp,(float)hp/maxhp,0.>,1,PRIM_LINK_TARGET,LINK_THIS,PRIM_DESC,info]);
     if(hp==0)die();
 }
 open()
@@ -181,6 +181,14 @@ default
                     string n2=llKey2Name(owner);//Gets the owner name
                     if(n2=="")n2=owner;//If you can't get the owner name, return the key instead
                     integer dmg=(integer)llGetSubString(m,37,-1);//This is the damage, fuck you.
+                    if (atcap) // use atcap to limit repairs
+                    {
+                        if (dmg < -atcap) dmg = -atcap;
+                    }
+                    else if (dmg < -maxhp) // use maxhp to limit repairs
+                    {
+                        dmg = -maxhp;
+                    }
                     if(att)
                     {
                         list tdl=llGetObjectDetails(owner,[OBJECT_POS,OBJECT_ROT]);//target data list
@@ -321,20 +329,6 @@ default
             llSetTimerEvent(0);
         }
     }
-    collision_start(integer n)
-    {
-        while(n>-1)
-        {
-            --n;
-            integer type=llDetectedType(n);
-            if(type&0x2&&~type&0x1&&llVecMag(llDetectedVel(n))>10)
-            {
-                if(hp>0)--hp;
-                else die();
-            }
-        }
-        handlehp();
-    }
 }
 //CHANGELOG ----
 //2.06 - Release
@@ -349,7 +343,7 @@ default
 //2.1 -> 2.2
 //+Checks to see if whats damaging it has damaged it before, if the damage is over 1 and not attached
 //+If attached, checks if the owner is actually aiming at the hitbox with a 2m margin of error.
-//2.1 -> 2.2
+//2.2 -> 2.21
 //+I FUCKED UP, THE 2M MARGIN OF ERROR DIDN'T TAKE ROTATIONS INTO ACCOUNT LOL
 //+This has that fixed, I blame tired scripting and 50 hour work weeks :(
 //+Thank jakobbischerk for finding this by trying to repair my barbed wire of all things
