@@ -127,7 +127,6 @@ vector tar(key id)
 }
 key user;
 key gen;//Object rezzer
-vector init;
 key me;
 integer hear;
 default
