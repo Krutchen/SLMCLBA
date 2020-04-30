@@ -135,14 +135,13 @@ default
     state_entry()
     {
         user=llGetOwner();
-        gen=(string)llGetObjectDetails(llGetKey(),[OBJECT_REZZER_KEY]);
-        llSetTimerEvent(5.0);//Used for auto-delete.
-        //
         me=llGetKey();
+        gen=(string)llGetObjectDetails(me,[OBJECT_REZZER_KEY]);
         update();
         //llListen(-500,"","","");//Non-Hex
         integer hex=(integer)("0x" + llGetSubString(llMD5String((string)me,0), 0, 3));
         hear=llListen(hex,"","","");
+        //llSetTimerEvent(5.0);//Used for auto-delete.
     }
     on_rez(integer p)
     {
