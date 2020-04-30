@@ -27,15 +27,27 @@ float front=0.5;
 float side=1.0;
 float back=1.5;
 float middle=0.1;
+//Note that following modifiers multiply the final damage. So it stacks multiplicatively with the previous modifiers
+float top=1.2;
+float bottom=1.2;
+float height_threshold=1.5;//How far up/down the Z axis should the source be to registered a top or bottom hit. Should be roughly half the vehicle's height.
 //Directional Processor
 integer lbapos(float dmg,vector pos, vector tpos)
 {
     //We'll use numbers greater than -20.0 but less than 20.0 as our forward direction. This means that numbers less -160.0 and greater than 160.0 are our rear. This will need to be changed based on vehicle size and shape. This will not work on Rho because she's too fat.
     if(tpos)
     {
-        if(llVecDist(pos,tpos)<1.0)return llFloor(dmg*middle);//This catches explosions which rezzes AT in the object's root position.
+        float dist=llVecDist(pos,tpos);
+        if(dist<1.0)return llFloor(dmg*middle);//This catches explosions which rezzes AT in the object's root position.
         else
         {
+            float mod=tpos.z-pos.z;
+            if(llFabs(mod)>=height_threshold)//Determines top/bottom hits
+            {
+                if(mod>0.0)mod=top;//Top check
+                else mod=bottom;//Bottom check
+            }
+            else mod=1.0;//Else reset it to 1.0
             rotation trot=llRotBetween(<1.0,0.0,0.0>*llGetRot(),llVecNorm(<tpos.x,tpos.y,pos.z>-pos));
             vector trotvec=llRot2Euler(trot)*RAD_TO_DEG;
             //You can optimize this further by doing angles in radians as opposed to degrees. This is written in degrees so its easier to read/follow
@@ -45,11 +57,11 @@ integer lbapos(float dmg,vector pos, vector tpos)
             //Now we use the Z-Axis to calculate the horizonal directions.
             //Note that vertical direction isn't factored, only the horizonal angle. This the vehicle is sliced up like a pie and damage will be based on how far and which direction from the center the projectile strikes when it hits the top or bottom.
             if(trotvec.z>-20.0&&trotvec.z<20.0)//Front
-                return llFloor(dmg*front);
+                return llFloor((dmg*front)*mod);
             else if(trotvec.z<-160.0||trotvec.z>160.0)//Back
-                return llFloor(dmg*back);
+                return llFloor((dmg*back)*mod);
             else //If it didn't hit any previous angles, the only thing left to hit is the sides.
-                return llFloor(dmg*side);
+                return llFloor((dmg*side)*mod);
         }
     }
     else return 0;//If a no vector is returned, do not process damage.
@@ -109,9 +121,11 @@ update()//SetText
         PRIM_DESC,"LBA.v.LBHD"+(string)hp+","+(string)mhp+","+(string)atcap+",999"+
         //In order: Current HP, Max HP, Max AT accepted, Max healing accepted (Not implemented)
         ",F-"+llGetSubString((string)front,0,2)+//Frontal modifier
-        ",S-"+llGetSubString((string)front,0,2)+//Side modifier
-        ",R-"+llGetSubString((string)front,0,2)+//Rear modifier
-        "T-1.0,B-1.0,M-"+llGetSubString((string)front,0,2)]);//Top, Bottom, and Middle Modifiers
+        ",S-"+llGetSubString((string)side,0,2)+//Side modifier
+        ",R-"+llGetSubString((string)back,0,2)+//Rear modifier
+        ",T-"+llGetSubString((string)top,0,2)+//Top modifier
+        ",B-"+llGetSubString((string)bottom,0,2)+//Bottom modifier
+        ",M-"+llGetSubString((string)middle,0,2)]);//Middle Modifier
         //Top and bottom are present for later use but are currently not implemented.
 }
 die()
@@ -140,7 +154,7 @@ default
         //llListen(-500,"","","");//Non-Hex
         integer hex=(integer)("0x" + llGetSubString(llMD5String((string)me,0), 0, 3));
         hear=llListen(hex,"","","");
-        //llSetTimerEvent(5.0);//Used for auto-delete.
+        llSetTimerEvent(5.0);//Used for auto-delete.
     }
     on_rez(integer p)
     {
