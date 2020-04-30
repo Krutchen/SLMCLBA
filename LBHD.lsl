@@ -1,19 +1,16 @@
-//[IMPORTANT] This requires vehicles/deployables to be aligned properly down the X-axis in order to function properly. Objects which require a rotational offset to function will need to be adjusted.
-/*
+/*[IMPORTANT] This requires vehicles/deployables to be aligned properly down the X-axis in order to function properly. Objects which require a rotational offset to function will need to be adjusted.
 The publically issued copy of this code has the following settings disabled:
 - Object healing
 - Collision Damage
-
-The pubically issued copy of this code has the following settings enabled:
 - Line-of-Sight Requirement
 - Blocking of micro-LBA.
 
 
 These settings may make the system incompatible with certain rulesets and equipment. However, notes and code for switching these features on and off is present for those who wish to use them.
 
-Do [not] use this as your default LBA parser as it would not be optimized for use in equipment that has no intention of benefitting from directional damage resistances. Use a standard LBA core or other LBA parser instead.
-*/
-/*[CREDITS]
+Do [not] use this as your default LBA parser as it would not be optimized for use in equipment that has no intention of benefitting from directional damage resistances. Use a standard LBA core or a different LBA parser instead.
+
+[CREDITS]
 datbot Resident/Criss Ixtar - For the initial proof of concept and idea.
 Dread Hudson - Establishing the standard LBA format.
 Secondary Lionheart - Method and integration
@@ -69,9 +66,9 @@ damage(integer amt, key id,vector pos, vector tpos)
             llResetTime();
         }
         //Be sure to update the listen event code block to allow negative damage values through.
-    }
-    else */if(amt<6)return; //Blocks micro-LBA
-    else
+    }*/
+    /*else if(amt<6)return; //Blocks micro-LBA
+    else*/
     {
         integer directional_amt=lbapos(amt,pos,tpos);
         if(directional_amt)hp-=directional_amt;
@@ -108,7 +105,7 @@ integer los(vector start, vector target)
 }
 update()//SetText
 {
-    llSetLinkPrimitiveParamsFast(-4,[PRIM_TEXT,"[LBDH]\n "+(string)hp+" / "+(string)mhp+" HP",<0.0,0.75,1.0>,1.0,
+    llSetLinkPrimitiveParamsFast(-4,[PRIM_TEXT,"[LBHD]\n "+(string)hp+" / "+(string)mhp+" HP",<0.0,0.75,1.0>,1.0,
         PRIM_DESC,"LBA.v.LBHD"+(string)hp+","+(string)mhp+","+(string)atcap+",999"+
         //In order: Current HP, Max HP, Max AT accepted, Max healing accepted (Not implemented)
         ",F-"+llGetSubString((string)front,0,2)+//Frontal modifier
