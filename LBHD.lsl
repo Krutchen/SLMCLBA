@@ -129,7 +129,7 @@ vector tar(key id)
     return av;
 }
 key user;
-key gen;//Shield gen
+key gen;//Object rezzer
 vector init;
 key me;
 integer hear;
@@ -144,7 +144,7 @@ default
         me=llGetKey();
         update();
         //llListen(-500,"","","");//Non-Hex
-        integer hex=(integer)("0x" + llGetSubString(llMD5String((string)llGetKey(),0), 0, 3));
+        integer hex=(integer)("0x" + llGetSubString(llMD5String((string)me,0), 0, 3));
         hear=llListen(hex,"","","");
     }
     on_rez(integer p)
@@ -154,12 +154,12 @@ default
             mhp=p;
             hp=p;
         }
-        integer hex=(integer)("0x" + llGetSubString(llMD5String((string)llGetKey(),0), 0, 3));
+        me=llGetKey();
+        integer hex=(integer)("0x" + llGetSubString(llMD5String((string)me,0), 0, 3));
         if(hear)llListenRemove(hear);
         hear=llListen(hex,"","","");
-        gen=(string)llGetObjectDetails(llGetKey(),[OBJECT_REZZER_KEY]);
+        gen=(string)llGetObjectDetails(me,[OBJECT_REZZER_KEY]);
         llSetTimerEvent(5.0);//Used for auto-delete.
-        me=llGetKey();
         user=llGetOwner();
         update();
     }
