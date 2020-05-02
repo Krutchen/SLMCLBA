@@ -32,33 +32,33 @@ float top=1.2;
 float bottom=1.2;
 float height_threshold=1.5;//How far up/down the Z axis should the source be to registered a top or bottom hit. Should be roughly half the vehicle's height.
 //Directional Processor
-integer lbapos(float dmg,vector pos, vector tpos)
+integer lbapos(float dmg,vector pos, vector targetPos)
 {
     //We'll use numbers greater than -20.0 but less than 20.0 as our forward direction. This means that numbers less -160.0 and greater than 160.0 are our rear. This will need to be changed based on vehicle size and shape. This will not work on Rho because she's too fat.
     if(tpos)
     {
-        float dist=llVecDist(pos,tpos);
+        float dist=llVecDist(pos,targetPos);
         if(dist<1.0)return llFloor(dmg*middle);//This catches explosions which rezzes AT in the object's root position.
         else
         {
-            float mod=tpos.z-pos.z;
+            float mod=targetPos.z-pos.z;
             if(llFabs(mod)>=height_threshold)//Determines top/bottom hits
             {
                 if(mod>0.0)mod=top;//Top check
                 else mod=bottom;//Bottom check
             }
             else mod=1.0;//Else reset it to 1.0
-            rotation trot=llRotBetween(<1.0,0.0,0.0>*llGetRot(),llVecNorm(<tpos.x,tpos.y,pos.z>-pos));
-            vector trotvec=llRot2Euler(trot)*RAD_TO_DEG;
+            rotation targetRot=llRotBetween(<1.0,0.0,0.0>*llGetRot(),llVecNorm(<targetPos.x,targetPos.y,pos.z>-pos));
+            vector targetRotVec=llRot2Euler(targetRot)*RAD_TO_DEG;
             //You can optimize this further by doing angles in radians as opposed to degrees. This is written in degrees so its easier to read/follow
             //For those who care to do so, here's the formulas: [Degrees = (Radians*180.0)/PI] or [Radians = (Degrees*PI)/180.0]
             //Degrees should be returned in values between -180.0 and 180.0
             //llSay(0,"Angle: "+(string)trotvec.z+"| Pos offset: "+(string)(tpos-pos)+" | RotBetween: "+(string)trot);//Debug output
             //Now we use the Z-Axis to calculate the horizonal directions.
             //Note that vertical direction isn't factored, only the horizonal angle. This the vehicle is sliced up like a pie and damage will be based on how far and which direction from the center the projectile strikes when it hits the top or bottom.
-            if(trotvec.z>-20.0&&trotvec.z<20.0)//Front
+            if(targetRotVec.z>-20.0&&targetRotVec.z<20.0)//Front
                 return llFloor((dmg*front)*mod);
-            else if(trotvec.z<-160.0||trotvec.z>160.0)//Back
+            else if(targetRotVec.z<-160.0||targetRotVec.z>160.0)//Back
                 return llFloor((dmg*back)*mod);
             else //If it didn't hit any previous angles, the only thing left to hit is the sides.
                 return llFloor((dmg*side)*mod);
@@ -67,7 +67,7 @@ integer lbapos(float dmg,vector pos, vector tpos)
     else return 0;//If a no vector is returned, do not process damage.
 }
 //Damage Processor
-damage(integer amt, key id,vector pos, vector tpos)
+damage(integer amt, key id,vector pos, vector targetPos)
 {
     /*if(amt<0)//Allows the object to be healed/repaired
     {
@@ -82,7 +82,7 @@ damage(integer amt, key id,vector pos, vector tpos)
     /*else if(amt<6)return; //Blocks micro-LBA
     else*/
     {
-        integer directional_amt=lbapos(amt,pos,tpos);
+        integer directional_amt=lbapos(amt,pos,targetPos);
         if(directional_amt)hp-=directional_amt;
         else
         {
@@ -115,18 +115,12 @@ integer los(vector start, vector target)
         else return 0;//Land in way
     }
 }
+string modifierstring;//This is visible so moderators can confirm vehicle attributes are within regulation.
 update()//SetText
 {
     llSetLinkPrimitiveParamsFast(-4,[PRIM_TEXT,"[LBHD]\n "+(string)hp+" / "+(string)mhp+" HP",<0.0,0.75,1.0>,1.0,
-        PRIM_DESC,"LBA.v.LBHD"+(string)hp+","+(string)mhp+","+(string)atcap+",999"+
+        PRIM_DESC,"LBA.v.LBHD"+(string)hp+","+(string)mhp+","+(string)atcap+",999"+modifierstring];
         //In order: Current HP, Max HP, Max AT accepted, Max healing accepted (Not implemented)
-        ",F-"+llGetSubString((string)front,0,2)+//Frontal modifier
-        ",S-"+llGetSubString((string)side,0,2)+//Side modifier
-        ",R-"+llGetSubString((string)back,0,2)+//Rear modifier
-        ",T-"+llGetSubString((string)top,0,2)+//Top modifier
-        ",B-"+llGetSubString((string)bottom,0,2)+//Bottom modifier
-        ",M-"+llGetSubString((string)middle,0,2)]);//Middle Modifier
-        //Top and bottom are present for later use but are currently not implemented.
 }
 die()
 {
@@ -143,18 +137,28 @@ key user;
 key gen;//Object rezzer
 key me;
 integer hear;
+boot()
+{
+    modifierstring=",F-"+llGetSubString((string)front,0,2)+//Frontal modifier
+        ",S-"+llGetSubString((string)side,0,2)+//Side modifier
+        ",R-"+llGetSubString((string)back,0,2)+//Rear modifier
+        ",T-"+llGetSubString((string)top,0,2)+//Top modifier
+        ",B-"+llGetSubString((string)bottom,0,2)+//Bottom modifier
+        ",M-"+llGetSubString((string)middle,0,2)]);//Middle Modifier
+    user=llGetOwner();
+    me=llGetKey();
+    gen=(string)llGetObjectDetails(me,[OBJECT_REZZER_KEY]);
+    if(hear)llListenRemove(hear);
+    integer hex=(integer)("0x" + llGetSubString(llMD5String((string)me,0), 0, 3));
+    hear=llListen(hex,"","","");
+    llSetTimerEvent(5.0);//Used for auto-delete.
+    update();
+}
 default
 {
     state_entry()
     {
-        user=llGetOwner();
-        me=llGetKey();
-        gen=(string)llGetObjectDetails(me,[OBJECT_REZZER_KEY]);
-        update();
-        //llListen(-500,"","","");//Non-Hex
-        integer hex=(integer)("0x" + llGetSubString(llMD5String((string)me,0), 0, 3));
-        hear=llListen(hex,"","","");
-        llSetTimerEvent(5.0);//Used for auto-delete.
+        boot();
     }
     on_rez(integer p)
     {
@@ -163,28 +167,21 @@ default
             mhp=p;
             hp=p;
         }
-        me=llGetKey();
-        integer hex=(integer)("0x" + llGetSubString(llMD5String((string)me,0), 0, 3));
-        if(hear)llListenRemove(hear);
-        hear=llListen(hex,"","","");
-        gen=(string)llGetObjectDetails(me,[OBJECT_REZZER_KEY]);
-        llSetTimerEvent(5.0);//Used for auto-delete.
-        user=llGetOwner();
-        update();
+        boot():
     }
     listen(integer chan, string name, key id, string message)
     {
         //[ALWAYS] USE llRegionSayTo(). Do not flood the channel with useless garbage that'll poll every object in listening range.
         list parse=llParseString2List(message,[","],[" "]);
-        if((key)llList2String(parse,0)==me)//targetcheck
+        if(llList2Key(parse,0)==me)//targetcheck
         {
             vector pos=llGetPos();
-            vector tpos=tar(id);
+            vector targetPos=tar(id);
             //if(los(pos,tpos))//Enforces LBA line-of-sight
             {
-                float amt=(float)llList2String(parse,-1);
+                float amt=llList2Float(parse,-1);
                 //if(llFabs(amt)<666.0)damage((integer)amt,id,pos,tpos);//Use this code to allow object healing, Blocks overflow attempts
-                if(amt>0)damage((integer)amt,id,pos,tpos);//Use this code if you do not wish to support healing
+                if(amt>0)damage((integer)amt,id,pos,targetPos);//Use this code if you do not wish to support healing
             }
             //else llRegionSayTo(llGetOwnerKey(id),0,"/me Armor deflected the damage!");//cheeki breeki
         }
