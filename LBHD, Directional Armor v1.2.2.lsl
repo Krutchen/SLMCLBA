@@ -71,12 +71,14 @@ integer lbapos(float dmg,vector pos, vector targetPos)
 //Damage Processor
 damage(integer amt, key id,vector pos, vector targetPos)
 {
+    if(amt>atcap)amt=atcap;
     /*if(amt<0)//Allows the object to be healed/repaired
     {
         if(llGetTime()>1.0)//Optional healing cooldown
         {
-            if(amt>hp*0.1)amt=hp*0.1;//Optional healing cap
+            if(amt>(float)hp*0.1)amt=llRound(hp*0.1);//Optional healing cap
             hp-=amt;
+            if(hp>mhp)hp=mhp;//Used to prevent overhealing
             llResetTime();
         }
         //Be sure to update the listen event code block to allow negative damage values through.
@@ -91,14 +93,10 @@ damage(integer amt, key id,vector pos, vector targetPos)
             //llRegionSayTo(llGetOwnerKey(id),0,"/me Armor deflected the damage!");//cheeki breeki
             return;
         }
-        //llSay(0,"/me took "+(string)amt+" LBA/LBB damage!");//Used to debug output.
+        //llSay(0,"/me took "+(string)amt+" LBA damage!");//Used to debug output.
     }
     if(hp<1)die();
-    else
-    {
-        if(hp>mhp)hp=mhp;//Used to prevent overhealing
-        update();
-    }
+    else update();
 }
 //Line-of-Sight Check
 integer los(vector start, vector target)
@@ -121,7 +119,7 @@ string modifierstring;//This is visible so moderators can confirm vehicle attrib
 update()//SetText
 {
     llSetLinkPrimitiveParamsFast(-4,[PRIM_TEXT,"[LBHD]\n "+(string)hp+" / "+(string)mhp+" HP",<0.0,0.75,1.0>,1.0,
-        PRIM_DESC,"LBA.v.LBHD"+(string)hp+","+(string)mhp+","+(string)atcap+",999"+modifierstring]);
+        PRIM_DESC,"LBA.v.LBHD,"+(string)hp+","+(string)mhp+","+(string)atcap+",999"+modifierstring]);
         //In order: Current HP, Max HP, Max AT accepted, Max healing accepted (Not implemented)
 }
 die()
