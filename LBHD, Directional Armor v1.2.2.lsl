@@ -30,12 +30,14 @@ float middle=0.1;
 //Note that following modifiers multiply the final damage. So it stacks multiplicatively with the previous modifiers
 float top=1.2;
 float bottom=1.2;
-float height_threshold=1.5;//How far up/down the Z axis should the source be to registered a top or bottom hit. Should be roughly half the vehicle's height.
 //Directional Processor
+float front_threshold=20.0;//Use positive floats, determines forward range
+float back_threshold=160.0;//Use positive floats, determines backward range
+float height_threshold=1.5;//How far up/down the Z axis should the source be to registered a top or bottom hit. Should be roughly half the vehicle's height.
 integer lbapos(float dmg,vector pos, vector targetPos)
 {
     //We'll use numbers greater than -20.0 but less than 20.0 as our forward direction. This means that numbers less -160.0 and greater than 160.0 are our rear. This will need to be changed based on vehicle size and shape. This will not work on Rho because she's too fat.
-    if(tpos)
+    if(targetPos)
     {
         float dist=llVecDist(pos,targetPos);
         if(dist<1.0)return llFloor(dmg*middle);//This catches explosions which rezzes AT in the object's root position.
@@ -56,9 +58,9 @@ integer lbapos(float dmg,vector pos, vector targetPos)
             //llSay(0,"Angle: "+(string)trotvec.z+"| Pos offset: "+(string)(tpos-pos)+" | RotBetween: "+(string)trot);//Debug output
             //Now we use the Z-Axis to calculate the horizonal directions.
             //Note that vertical direction isn't factored, only the horizonal angle. This the vehicle is sliced up like a pie and damage will be based on how far and which direction from the center the projectile strikes when it hits the top or bottom.
-            if(targetRotVec.z>-20.0&&targetRotVec.z<20.0)//Front
+            if(targetRotVec.z>-front_threshold&&targetRotVec.z<front_threshold)//Front
                 return llFloor((dmg*front)*mod);
-            else if(targetRotVec.z<-160.0||targetRotVec.z>160.0)//Back
+            else if(targetRotVec.z<-back_threshold||targetRotVec.z>back_threshold)//Back
                 return llFloor((dmg*back)*mod);
             else //If it didn't hit any previous angles, the only thing left to hit is the sides.
                 return llFloor((dmg*side)*mod);
@@ -119,7 +121,7 @@ string modifierstring;//This is visible so moderators can confirm vehicle attrib
 update()//SetText
 {
     llSetLinkPrimitiveParamsFast(-4,[PRIM_TEXT,"[LBHD]\n "+(string)hp+" / "+(string)mhp+" HP",<0.0,0.75,1.0>,1.0,
-        PRIM_DESC,"LBA.v.LBHD"+(string)hp+","+(string)mhp+","+(string)atcap+",999"+modifierstring];
+        PRIM_DESC,"LBA.v.LBHD"+(string)hp+","+(string)mhp+","+(string)atcap+",999"+modifierstring]);
         //In order: Current HP, Max HP, Max AT accepted, Max healing accepted (Not implemented)
 }
 die()
@@ -144,7 +146,7 @@ boot()
         ",R-"+llGetSubString((string)back,0,2)+//Rear modifier
         ",T-"+llGetSubString((string)top,0,2)+//Top modifier
         ",B-"+llGetSubString((string)bottom,0,2)+//Bottom modifier
-        ",M-"+llGetSubString((string)middle,0,2)]);//Middle Modifier
+        ",M-"+llGetSubString((string)middle,0,2);//Middle Modifier
     user=llGetOwner();
     me=llGetKey();
     gen=(string)llGetObjectDetails(me,[OBJECT_REZZER_KEY]);
@@ -167,7 +169,7 @@ default
             mhp=p;
             hp=p;
         }
-        boot():
+        boot();
     }
     listen(integer chan, string name, key id, string message)
     {
