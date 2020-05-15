@@ -5,7 +5,7 @@ integer hp=mhp;//Current HP
 //Negative Numbers Restore Health
 integer atcap=50;
 //Damage Processor
-damage(integer amt, key id,vector pos, vector targetPos)
+damage(integer amt, key id)
 {
     if(amt>atcap)amt=atcap;
     if(amt<0)//Allows the object to be healed/repaired
@@ -83,11 +83,9 @@ default
         list parse=llParseString2List(message,[","],[" "]);
         if(llList2Key(parse,0)==me)//targetcheck
         {
-            vector pos=llGetPos();
-            vector targetPos=tar(id);
             float amt=llList2Float(parse,-1);
-            if(llFabs(amt)<666.0)damage((integer)amt,id,pos,targetPos);//Use this code to allow object healing, Blocks overflow attempts
-            //if(amt>0)damage((integer)amt,id,pos,targetPos);//Use this code if you do not wish to support healing
+            if(llFabs(amt)<666.0)damage((integer)amt,id);//Use this code to allow object healing, Blocks overflow attempts
+            //if(amt>0)damage((integer)amt,id);//Use this code if you do not wish to support healing
         }
     }
     collision_start(integer c)//Enable this block if you want to support legacy collisions.
