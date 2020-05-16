@@ -93,8 +93,8 @@ damage(integer amt, key id,vector pos, vector targetPos)
             //llRegionSayTo(llGetOwnerKey(id),0,"/me Armor deflected the damage!");//cheeki breeki
             return;
         }
-        llOwnerSay("/me took +(string)directional_amt+" ("+(string)amt+") damage");//Used to debug output.
-        //llRegionSayTo(llGetOwnerKey(id),0,"/me took +(string)directional_amt+" ("+(string)amt+") damage");
+        llOwnerSay("/me took "+(string)directional_amt+" ("+(string)amt+") damage");//Used to debug output.
+        llRegionSayTo(llGetOwnerKey(id),0,"/me took "+(string)directional_amt+" ("+(string)amt+") damage");
     }
     if(hp<1)die();
     else update();
@@ -163,11 +163,6 @@ default
     }
     on_rez(integer p)
     {
-        if(p>1)//Allows HUD/Objects to set HP value when rezzed with a param, otherwise uses default
-        {
-            mhp=p;
-            hp=p;
-        }
         boot();
     }
     listen(integer chan, string name, key id, string message)
@@ -181,8 +176,8 @@ default
             //if(los(pos,tpos))//Enforces LBA line-of-sight
             {
                 float amt=llList2Float(parse,-1);
-                //if(llFabs(amt)<666.0)damage((integer)amt,id,pos,tpos);//Use this code to allow object healing, Blocks overflow attempts
-                if(amt>0)damage((integer)amt,id,pos,targetPos);//Use this code if you do not wish to support healing
+                if(llFabs(amt)<666.0)damage((integer)amt,id,pos,targetPos);//Use this code to allow object healing, Blocks overflow attempts
+               //if(amt>0)damage((integer)amt,id,pos,targetPos);//Use this code if you do not wish to support healing
             }
             //else llRegionSayTo(llGetOwnerKey(id),0,"/me Armor deflected the damage!");//cheeki breeki
         }
