@@ -163,6 +163,11 @@ default
     }
     on_rez(integer p)
     {
+        if(p>1)//Allows HUD/Objects to set HP value when rezzed with a param, otherwise uses default
+        {
+            mhp=p;
+            hp=p;
+        }
         boot();
     }
     listen(integer chan, string name, key id, string message)
