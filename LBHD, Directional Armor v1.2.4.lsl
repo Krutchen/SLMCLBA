@@ -93,8 +93,8 @@ damage(integer amt, key id,vector pos, vector targetPos)
             //llRegionSayTo(llGetOwnerKey(id),0,"/me Armor deflected the damage!");//cheeki breeki
             return;
         }
-        llOwnerSay("/me took +(string)directional_amt+" ("+(string)amt+") damage");//Used to debug output.
-        //llRegionSayTo(llGetOwnerKey(id),0,"/me took +(string)directional_amt+" ("+(string)amt+") damage");
+        llOwnerSay("/me took "+(string)directional_amt+" ("+(string)amt+") damage");//Used to debug output.
+        //llRegionSayTo(llGetOwnerKey(id),0,"/me took "+(string)directional_amt+" ("+(string)amt+") damage");
     }
     if(hp<1)die();
     else update();
