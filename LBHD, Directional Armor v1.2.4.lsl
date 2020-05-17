@@ -181,8 +181,8 @@ default
             //if(los(pos,tpos))//Enforces LBA line-of-sight
             {
                 float amt=llList2Float(parse,-1);
-                if(llFabs(amt)<666.0)damage((integer)amt,id,pos,targetPos);//Use this code to allow object healing, Blocks overflow attempts
-               //if(amt>0)damage((integer)amt,id,pos,targetPos);//Use this code if you do not wish to support healing
+                //if(llFabs(amt)<666.0)damage((integer)amt,id,pos,targetPos);//Use this code to allow object healing, Blocks overflow attempts
+               if(amt>0)damage((integer)amt,id,pos,targetPos);//Use this code if you do not wish to support healing
             }
             //else llRegionSayTo(llGetOwnerKey(id),0,"/me Armor deflected the damage!");//cheeki breeki
         }
