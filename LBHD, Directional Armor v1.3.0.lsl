@@ -17,12 +17,12 @@ Secondary Lionheart - Method and integration
 
 Note: This should be considered an extention of LBA Slim and possesses limited to no anti-grief.
 */
-integer mhp=100;//Maximum HP
+integer mhp=200;//Maximum HP
 integer hp=mhp;//Current HP
 //Positive Numbers Deal Damage
 //Negative Numbers Restore Health
 //Damage Multipliers: 0 = Invulnerable, 1.0 = 100% Damage, High numbers = Higher Damage
-integer atcap=50;
+integer atcap=200;
 float front=0.5;
 float side=1.0;
 float back=1.5;
@@ -72,7 +72,7 @@ integer lbapos(float dmg,vector pos, vector targetPos)
 damage(integer amt, key id,vector pos, vector targetPos)
 {
     if(amt>atcap)amt=atcap;
-    /*if(amt<0)//Allows the object to be healed/repaired
+    if(amt<0)//Allows the object to be healed/repaired
     {
         if(llGetTime()>1.0)//Optional healing cooldown
         {
@@ -82,9 +82,9 @@ damage(integer amt, key id,vector pos, vector targetPos)
             llResetTime();
         }
         //Be sure to update the listen event code block to allow negative damage values through.
-    }*/
-    /*else if(amt<6)return; //Blocks micro-LBA
-    else*/
+    }
+    /*else if(amt<6)return; //Blocks micro-LBA*/
+    else
     {
         integer directional_amt=lbapos(amt,pos,targetPos);
         if(directional_amt)hp-=directional_amt;
@@ -138,6 +138,7 @@ key user;
 key gen;//Object rezzer
 key me;
 integer hear;
+list tracker;
 boot()
 {
     modifierstring=",F-"+llGetSubString((string)front,0,2)+//Frontal modifier
@@ -152,7 +153,7 @@ boot()
     if(hear)llListenRemove(hear);
     integer hex=(integer)("0x" + llGetSubString(llMD5String((string)me,0), 0, 3));
     hear=llListen(hex,"","","");
-    llSetTimerEvent(5.0);//Used for auto-delete.
+    llSetTimerEvent(1.0);//Used for auto-delete.
     update();
 }
 default
@@ -178,26 +179,37 @@ default
         {
             vector pos=llGetPos();
             vector targetPos=tar(id);
+            integer f=llListFindList(tracker,[name]);
+            if(f>-1)targetPos=llList2Vector(tracker,f+1);
             //if(los(pos,tpos))//Enforces LBA line-of-sight
             {
                 float amt=llList2Float(parse,-1);
-                //if(llFabs(amt)<666.0)damage((integer)amt,id,pos,targetPos);//Use this code to allow object healing, Blocks overflow attempts
-               if(amt>0)damage((integer)amt,id,pos,targetPos);//Use this code if you do not wish to support healing
+                if(llFabs(amt)<666.0)damage((integer)amt,id,pos,targetPos);//Use this code to allow object healing, Blocks overflow attempts
+                //if(amt>0)damage((integer)amt,id,pos,targetPos);//Use this code if you do not wish to support healing
             }
             //else llRegionSayTo(llGetOwnerKey(id),0,"/me Armor deflected the damage!");//cheeki breeki
         }
     }
-    /*collision_start(integer c)//Enable this block if you want to support legacy collisions.
+    collision_start(integer c)//Enable this block if you want to support legacy collisions.
     {
         if(llVecMag(llDetectedVel(0))>40.0)
         {
-            hp-=c;
-            if(hp<1)die();//llDie();
-            else update();
+            if(tracker==[])llSetTimerEvent(1.0);
+            string name=llDetectedName(0);
+            integer f=llListFindList(tracker,[name]);
+            if(f>-1)tracker=llListReplaceList(tracker,[llDetectedPos(0)],f+1,f+1);
+            else
+            {
+                if(llGetListLength(tracker)>10)tracker=llDeleteSubList(tracker,0,1);//Delete eldest entry to prevent stack-heap
+                tracker+=[name,llDetectedPos(0)];
+            }
+            //Stores data as follows: OBJECT_NAME,OBJECT_POS
+            //Updates objects of the same name to the most recent.
         }
-    }*/
+    }
     timer()//Auto-deleter. Will kill object if avatar leaves the region or spawning object is removed.
     {
+        tracker=[];//Reset tracker
         if(tar(gen))return;
         llDie();
     }
