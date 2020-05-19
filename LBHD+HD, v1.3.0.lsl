@@ -1,0 +1,267 @@
+/*[IMPORTANT] This requires vehicles/deployables to be aligned properly down the X-axis in order to function properly. Objects which require a rotational offset to function will need to be adjusted.
+The publically issued copy of this code has the following settings disabled:
+- Object healing
+- Collision Damage
+- Line-of-Sight Requirement
+- Blocking of micro-LBA.
+
+
+These settings may make the system incompatible with certain rulesets and equipment. However, notes and code for switching these features on and off is present for those who wish to use them.
+
+Do [not] use this as your default LBA parser as it would not be optimized for use in equipment that has no intention of benefitting from directional damage resistances. Use a standard LBA core or a different LBA parser instead.
+
+[CREDITS]
+datbot Resident/Criss Ixtar - For the initial proof of concept and idea.
+Dread Hudson - Establishing the standard LBA format.
+Secondary Lionheart - Method and integration
+
+Note: This should be considered an extention of LBA Slim and possesses limited to no anti-grief.
+*/
+integer mhp=200;//Maximum HP
+integer hp=mhp;//Current HP
+//Anti-Grief
+float interval=1.0;//How many seconds before the threshold is cleared.
+integer banthresh=250;//How much HP within the interval is considered ban worth, this affects single-hits as well as ATCAP is used only during damage calculations. Note that exceeding the ATCAP will still count against the user as the difference is not factored with the tracker.
+//With a 2s interval at 80 damage, it will require a single owner to deal more than 40 DPS in order to get blacklisted.
+list banlist;
+//Tracker stores information like so: OWNER_UUID,DMG_TRACKED
+list bantracker;
+integer checkdmg(string source, key owner, integer amt)//0 = Do not take damage, 1 = Take damage
+{
+    if(llListFindList(banlist,[owner])>-1)return 0;//Checks for previously banned source
+    else
+    {
+        integer param=llListFindList(banlist,[owner]);
+        if(param>-1)//Owner damage is already in tracker.
+        {
+            integer totalamt=llList2Integer(tracker,param+1);
+            if(totalamt<banthresh)//Check ban threshold
+            {
+                bantracker=llListReplaceList(tracker,[totalamt],param+1,param+1);//Update damage dealt thus far
+                return 1;
+            }
+            else //Ban them instead if it fails
+            {
+                bantracker=llDeleteSubList(tracker,param,param+1);
+                banlist+=owner;
+                llOwnerSay("Banned "+llKey2Name(owner)+" for dealing "+(string)totalamt+" damage
+                    Last source: ["+source+"] for "+(string)amt+" damage");
+                llRegionSayTo(owner,0,"Blacklisted for dealing too much damage too quickly");
+                hp+=llList2Integer(tracker,param+1); //Refund the damage they already did.
+                if(hp>mhp)hp=mhp;
+                return 0;
+            }
+        }
+        else
+        {
+            bantracker+=[owner,amt];
+            return 1;
+        }
+    }
+}
+//Positive Numbers Deal Damage
+//Negative Numbers Restore Health
+//Damage Multipliers: 0 = Invulnerable, 1.0 = 100% Damage, High numbers = Higher Damage
+integer atcap=200;
+float front=0.5;
+float side=1.0;
+float back=1.5;
+float middle=0.1;
+//Note that following modifiers multiply the final damage. So it stacks multiplicatively with the previous modifiers
+float top=1.2;
+float bottom=1.2;
+//Directional Processor
+float front_threshold=20.0;//Use positive floats, determines forward range
+float back_threshold=160.0;//Use positive floats, determines backward range
+float height_threshold=1.5;//How far up/down the Z axis should the source be to registered a top or bottom hit. Should be roughly half the vehicle's height.
+integer lbapos(float dmg,vector pos, vector targetPos)
+{
+    //We'll use numbers greater than -20.0 but less than 20.0 as our forward direction. This means that numbers less -160.0 and greater than 160.0 are our rear. This will need to be changed based on vehicle size and shape. This will not work on Rho because she's too fat.
+    if(targetPos)
+    {
+        float dist=llVecDist(pos,targetPos);
+        if(dist<1.0)return llFloor(dmg*middle);//This catches explosions which rezzes AT in the object's root position.
+        else
+        {
+            float mod=targetPos.z-pos.z;
+            if(llFabs(mod)>=height_threshold)//Determines top/bottom hits
+            {
+                if(mod>0.0)mod=top;//Top check
+                else mod=bottom;//Bottom check
+            }
+            else mod=1.0;//Else reset it to 1.0
+            rotation targetRot=llRotBetween(<1.0,0.0,0.0>*llGetRot(),llVecNorm(<targetPos.x,targetPos.y,pos.z>-pos));
+            vector targetRotVec=llRot2Euler(targetRot)*RAD_TO_DEG;
+            //You can optimize this further by doing angles in radians as opposed to degrees. This is written in degrees so its easier to read/follow
+            //For those who care to do so, here's the formulas: [Degrees = (Radians*180.0)/PI] or [Radians = (Degrees*PI)/180.0]
+            //Degrees should be returned in values between -180.0 and 180.0
+            //llSay(0,"Angle: "+(string)trotvec.z+"| Pos offset: "+(string)(tpos-pos)+" | RotBetween: "+(string)trot);//Debug output
+            //Now we use the Z-Axis to calculate the horizonal directions.
+            //Note that vertical direction isn't factored, only the horizonal angle. This the vehicle is sliced up like a pie and damage will be based on how far and which direction from the center the projectile strikes when it hits the top or bottom.
+            if(targetRotVec.z>-front_threshold&&targetRotVec.z<front_threshold)//Front
+                return llFloor((dmg*front)*mod);
+            else if(targetRotVec.z<-back_threshold||targetRotVec.z>back_threshold)//Back
+                return llFloor((dmg*back)*mod);
+            else //If it didn't hit any previous angles, the only thing left to hit is the sides.
+                return llFloor((dmg*side)*mod);
+        }
+    }
+    else return 0;//If a no vector is returned, do not process damage.
+}
+//Damage Processor
+damage(integer amt, key id,vector pos, vector targetPos)
+{
+    if(amt>atcap)amt=atcap;
+    if(amt<0)//Allows the object to be healed/repaired
+    {
+        if(llGetTime()>1.0)//Optional healing cooldown
+        {
+            if(amt>(float)hp*0.1)amt=llRound(hp*0.1);//Optional healing cap
+            hp-=amt;
+            if(hp>mhp)hp=mhp;//Used to prevent overhealing
+            llResetTime();
+        }
+        //Be sure to update the listen event code block to allow negative damage values through.
+    }
+    /*else if(amt<6)return; //Blocks micro-LBA*/
+    else
+    {
+        integer directional_amt=lbapos(amt,pos,targetPos);
+        if(directional_amt)hp-=directional_amt;
+        else
+        {
+            //llRegionSayTo(llGetOwnerKey(id),0,"/me Armor deflected the damage!");//cheeki breeki
+            return;
+        }
+        llOwnerSay("/me took "+(string)directional_amt+" ("+(string)amt+") damage");//Used to debug output.
+        llRegionSayTo(llGetOwnerKey(id),0,"/me took "+(string)directional_amt+" ("+(string)amt+") damage");
+    }
+    if(hp<1)die();
+    else update();
+}
+//Line-of-Sight Check
+integer los(vector start, vector target)
+{
+    list ray=llCastRay(target,start,[RC_REJECT_TYPES,RC_REJECT_AGENTS,RC_DATA_FLAGS,RC_GET_ROOT_KEY,RC_MAX_HITS,1]);
+    key hit=llList2Key(ray,0);//Debug
+    if(llKey2Name(hit))
+    {
+        //llSay(0,llKey2Name(hit));//Debug
+        if(hit==me)return 1;
+        else return 0;//Object in way
+    }
+    else
+    {
+        if(llList2Vector(ray,1)==ZERO_VECTOR)return 1;
+        else return 0;//Land in way
+    }
+}
+string modifierstring;//This is visible so moderators can confirm vehicle attributes are within regulation.
+update()//SetText
+{
+    llSetLinkPrimitiveParamsFast(-4,[PRIM_TEXT,"[LBHD+AG]\n "+(string)hp+" / "+(string)mhp+" HP",<0.0,0.75,1.0>,1.0,
+        PRIM_DESC,"LBA.v.DHAG,"+(string)hp+","+(string)mhp+","+(string)atcap+",999"+modifierstring]);
+        //In order: Current HP, Max HP, Max AT accepted, Max healing accepted (Not implemented)
+}
+die()
+{
+    //Add extra shit here
+    //llResetScript();//Debug
+    llDie();//Otherwise, use this
+}
+vector tar(key id)
+{
+    vector av=(vector)((string)llGetObjectDetails(id,[OBJECT_POS]));
+    return av;
+}
+key user;
+key gen;//Object rezzer
+key me;
+integer hear;
+list tracker;
+boot()
+{
+    modifierstring=",F-"+llGetSubString((string)front,0,2)+//Frontal modifier
+        ",S-"+llGetSubString((string)side,0,2)+//Side modifier
+        ",R-"+llGetSubString((string)back,0,2)+//Rear modifier
+        ",T-"+llGetSubString((string)top,0,2)+//Top modifier
+        ",B-"+llGetSubString((string)bottom,0,2)+//Bottom modifier
+        ",M-"+llGetSubString((string)middle,0,2);//Middle Modifier
+    user=llGetOwner();
+    me=llGetKey();
+    gen=(string)llGetObjectDetails(me,[OBJECT_REZZER_KEY]);
+    if(hear)llListenRemove(hear);
+    integer hex=(integer)("0x" + llGetSubString(llMD5String((string)me,0), 0, 3));
+    hear=llListen(hex,"","","");
+    llSetTimerEvent(1.0);//Used for auto-delete.
+    update();
+}
+default
+{
+    state_entry()
+    {
+        boot();
+    }
+    on_rez(integer p)
+    {
+        if(p>1)//Allows HUD/Objects to set HP value when rezzed with a param, otherwise uses default
+        {
+            mhp=p;
+            hp=p;
+        }
+        boot();
+    }
+    listen(integer chan, string name, key id, string message)
+    {
+        //[ALWAYS] USE llRegionSayTo(). Do not flood the channel with useless garbage that'll poll every object in listening range.
+        list parse=llParseString2List(message,[","],[" "]);
+        if(llList2Key(parse,0)==me)//targetcheck
+        {
+            vector pos=llGetPos();
+            vector targetPos=tar(id);
+            integer f=llListFindList(tracker,[name]);
+            if(f>-1)targetPos=llList2Vector(tracker,f+1);
+            //if(los(pos,tpos))//Enforces LBA line-of-sight
+            {
+                integer amt=llList2Integer(parse,-1);
+                if(llFabs(amt)<666.0)//Use this code to allow object healing, Blocks overflow attempts
+                {
+                    if(amt>0)
+                    {
+                        if(checkdmg(name,llGetOwnerKey(id),amt))
+                        {
+                            llSetTimerEvent(interval);//Reset interval on new damage update
+                            damage(amt,id,pos,targetPos);
+                        }
+                        else damage(amt,id,pos,targetPos);
+                    }
+                }
+            }
+            //else llRegionSayTo(llGetOwnerKey(id),0,"/me Armor deflected the damage!");//cheeki breeki
+        }
+    }
+    collision_start(integer c)//Enable this block if you want to support legacy collisions.
+    {
+        if(llVecMag(llDetectedVel(0))>40.0)
+        {
+            if(tracker==[])llSetTimerEvent(1.0);
+            string name=llDetectedName(0);
+            integer f=llListFindList(tracker,[name]);
+            if(f>-1)tracker=llListReplaceList(tracker,[llDetectedPos(0)],f+1,f+1);
+            else
+            {
+                if(llGetListLength(tracker)>10)tracker=llDeleteSubList(tracker,0,1);//Delete eldest entry to prevent stack-heap
+                tracker+=[name,llDetectedPos(0)];
+            }
+            //Stores data as follows: OBJECT_NAME,OBJECT_POS
+            //Updates objects of the same name to the most recent.
+        }
+    }
+    timer()//Auto-deleter. Will kill object if avatar leaves the region or spawning object is removed.
+    {
+        bantracker=[];
+        tracker=[];//Reset tracker
+        if(tar(gen))return;
+        llDie();
+    }
+}
