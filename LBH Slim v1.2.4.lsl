@@ -33,7 +33,7 @@ damage(integer amt, key id)
 update()//SetText
 {
     llSetLinkPrimitiveParamsFast(-4,[PRIM_TEXT,"[LBHS]\n "+(string)hp+" / "+(string)mhp+" HP",<1.0,1.0,1.0>,1.0,
-        PRIM_DESC,"LBA.v.Slim,"+(string)hp+","+(string)mhp+","+(string)atcap+",666"]);
+        PRIM_DESC,"LBA.v.HS,"+(string)hp+","+(string)mhp+","+(string)atcap+",666"]);
         //In order: Current HP, Max HP, Max AT accepted, Max healing accepted (Not implemented)
 }
 die()
