@@ -1,27 +1,23 @@
 /*[IMPORTANT] This requires vehicles/deployables to be aligned properly down the X-axis in order to function properly. Objects which require a rotational offset to function will need to be adjusted.
-The publically issued copy of this code has the following settings disabled:
-- Object healing
-- Collision Damage
-- Line-of-Sight Requirement
-- Blocking of micro-LBA.
 
+Default settings may make the system incompatible with certain rulesets and equipment. However, notes and code for changing these features is present for those who wish to use them.
 
-These settings may make the system incompatible with certain rulesets and equipment. However, notes and code for switching these features on and off is present for those who wish to use them.
-
-Do [not] use this as your default LBA parser as it would not be optimized for use in equipment that has no intention of benefitting from directional damage resistances. Use a standard LBA core or a different LBA parser instead.
+Do [not] use this as your default LBA parser as it would not be optimized for use in equipment that has no intention of benefitting from directional damage resistances. Use the standard LBA or LBH core instead.
 
 [CREDITS]
 datbot Resident/Criss Ixtar - For the initial proof of concept and idea.
 Dread Hudson - Establishing the standard LBA format.
 Secondary Lionheart - Method and integration
+Criss Ixtar - For collision-location concept and idea.
 
-Note: This should be considered an extention of LBA Slim and possesses limited to no anti-grief.
 */
+string ver="DHv1.3.1";//LBA Version
 integer mhp=200;//Maximum HP
 integer hp=mhp;//Current HP
 //Positive Numbers Deal Damage
 //Negative Numbers Restore Health
 //Damage Multipliers: 0 = Invulnerable, 1.0 = 100% Damage, High numbers = Higher Damage
+//The total between all values should be around 5.0 for balancing purposes.
 integer atcap=200;
 float front=0.5;
 float side=1.0;
@@ -31,12 +27,12 @@ float middle=0.1;
 float top=1.2;
 float bottom=1.2;
 //Directional Processor
-float front_threshold=20.0;//Use positive floats, determines forward range
-float back_threshold=160.0;//Use positive floats, determines backward range
-float height_threshold=1.5;//How far up/down the Z axis should the source be to registered a top or bottom hit. Should be roughly half the vehicle's height.
+float front_threshold=25.0;//Use positive floats, determines forward range
+float back_threshold=155.0;//Use positive floats, determines backward range
+float height_threshold=0.75;//How far up/down the Z axis should the source be to registered a top or bottom hit. Should be roughly half the vehicle's height to ground from root position.
 integer lbapos(float dmg,vector pos, vector targetPos)
 {
-    //We'll use numbers greater than -20.0 but less than 20.0 as our forward direction. This means that numbers less -160.0 and greater than 160.0 are our rear. This will need to be changed based on vehicle size and shape. This will not work on Rho because she's too fat.
+    //We'll use numbers greater than -25.0 but less than 25.0 as our forward direction. This means that numbers less -155.0 and greater than 155.0 are our rear. This will need to be changed based on vehicle size and shape. This will not work on Rho because she's too fat.
     if(targetPos)
     {
         float dist=llVecDist(pos,targetPos);
@@ -68,8 +64,35 @@ integer lbapos(float dmg,vector pos, vector targetPos)
     }
     else return 0;//If a no vector is returned, do not process damage.
 }
+float collisionmod(vector pos, vector targetPos)
+{
+    if(targetPos)
+    {
+        float dist=llVecDist(pos,targetPos);
+        if(dist<1.0)return middle;//This catches explosions which rezzes AT in the object's root position.
+        else
+        {
+            float mod=targetPos.z-pos.z;
+            if(llFabs(mod)>=height_threshold)//Determines top/bottom hits
+            {
+                if(mod>0.0)mod=top;//Top check
+                else mod=bottom;//Bottom check
+            }
+            else mod=1.0;//Else reset it to 1.0
+            rotation targetRot=llRotBetween(<1.0,0.0,0.0>*llGetRot(),llVecNorm(<targetPos.x,targetPos.y,pos.z>-pos));
+            vector targetRotVec=llRot2Euler(targetRot)*RAD_TO_DEG;
+            if(targetRotVec.z>-front_threshold&&targetRotVec.z<front_threshold)//Front
+                return front*mod;
+            else if(targetRotVec.z<-back_threshold||targetRotVec.z>back_threshold)//Back
+                return back*mod;
+            else //If it didn't hit any previous angles, the only thing left to hit is the sides.
+                return side*mod;
+        }
+    }
+    else return 0.0;
+}
 //Damage Processor
-damage(integer amt, key id,vector pos, vector targetPos)
+damage(integer amt, key id,vector pos, vector targetPos, float tmod)
 {
     if(amt>atcap)amt=atcap;
     if(amt<0)//Allows the object to be healed/repaired
@@ -86,11 +109,14 @@ damage(integer amt, key id,vector pos, vector targetPos)
     /*else if(amt<6)return; //Blocks micro-LBA*/
     else
     {
-        integer directional_amt=lbapos(amt,pos,targetPos);
+        integer directional_amt;
+        if(tmod)directional_amt=llFloor(amt*tmod);
+        else lbapos(amt,pos,targetPos);
         if(directional_amt)hp-=directional_amt;
-        else
+        else //Failed to do damage
         {
-            //llRegionSayTo(llGetOwnerKey(id),0,"/me Armor deflected the damage!");//cheeki breeki
+            llOwnerSay("Damage Blocked by Armor");
+            llRegionSayTo(llGetOwnerKey(id),0,"Attack was stopped by armor.");
             return;
         }
         llOwnerSay("/me took "+(string)directional_amt+" ("+(string)amt+") damage");//Used to debug output.
@@ -99,28 +125,11 @@ damage(integer amt, key id,vector pos, vector targetPos)
     if(hp<1)die();
     else update();
 }
-//Line-of-Sight Check
-integer los(vector start, vector target)
-{
-    list ray=llCastRay(target,start,[RC_REJECT_TYPES,RC_REJECT_AGENTS,RC_DATA_FLAGS,RC_GET_ROOT_KEY,RC_MAX_HITS,1]);
-    key hit=llList2Key(ray,0);//Debug
-    if(llKey2Name(hit))
-    {
-        //llSay(0,llKey2Name(hit));//Debug
-        if(hit==me)return 1;
-        else return 0;//Object in way
-    }
-    else
-    {
-        if(llList2Vector(ray,1)==ZERO_VECTOR)return 1;
-        else return 0;//Land in way
-    }
-}
 string modifierstring;//This is visible so moderators can confirm vehicle attributes are within regulation.
 update()//SetText
 {
     llSetLinkPrimitiveParamsFast(-4,[PRIM_TEXT,"[LBHD]\n "+(string)hp+" / "+(string)mhp+" HP",<0.0,0.75,1.0>,1.0,
-        PRIM_DESC,"LBA.v.DH,"+(string)hp+","+(string)mhp+","+(string)atcap+",999"+modifierstring]);
+        PRIM_DESC,"LBA.v."+ver+","+(string)hp+","+(string)mhp+","+(string)atcap+",999"+modifierstring]);
         //In order: Current HP, Max HP, Max AT accepted, Max healing accepted (Not implemented)
 }
 die()
@@ -179,29 +188,27 @@ default
         {
             vector pos=llGetPos();
             vector targetPos=tar(id);
+            float tmod;
             integer f=llListFindList(tracker,[name]);
-            if(f>-1)targetPos=llList2Vector(tracker,f+1);
-            //if(los(pos,tpos))//Enforces LBA line-of-sight
-            {
-                float amt=llList2Float(parse,-1);
-                if(llFabs(amt)<666.0)damage((integer)amt,id,pos,targetPos);//Use this code to allow object healing, Blocks overflow attempts
-                //if(amt>0)damage((integer)amt,id,pos,targetPos);//Use this code if you do not wish to support healing
-            }
-            //else llRegionSayTo(llGetOwnerKey(id),0,"/me Armor deflected the damage!");//cheeki breeki
+            if(f>-1)tmod=llList2Float(tracker,f+1);
+            float amt=llList2Float(parse,-1);
+            if(llFabs(amt)<666.0)damage((integer)amt,id,pos,targetPos,tmod);//Use this code to allow object healing, Blocks overflow attempts
+            //if(amt>0)damage((integer)amt,id,pos,targetPos);//Use this code if you do not wish to support healing
         }
     }
     collision_start(integer c)//Enable this block if you want to support legacy collisions.
     {
         if(llVecMag(llDetectedVel(0))>40.0)
         {
+            vector gpos=llGetPos();
             if(tracker==[])llSetTimerEvent(1.0);
             string name=llDetectedName(0);
             integer f=llListFindList(tracker,[name]);
-            if(f>-1)tracker=llListReplaceList(tracker,[llDetectedPos(0)],f+1,f+1);
+            if(f>-1)tracker=llListReplaceList(tracker,[collisionmod(gpos,llDetectedPos(0))],f+1,f+1);
             else
             {
                 if(llGetListLength(tracker)>10)tracker=llDeleteSubList(tracker,0,1);//Delete eldest entry to prevent stack-heap
-                tracker+=[name,llDetectedPos(0)];
+                tracker+=[name,collisionmod(gpos,llDetectedPos(0))];
             }
             //Stores data as follows: OBJECT_NAME,OBJECT_POS
             //Updates objects of the same name to the most recent.
