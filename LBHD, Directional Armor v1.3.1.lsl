@@ -111,7 +111,7 @@ damage(integer amt, key id,vector pos, vector targetPos, float tmod)
     {
         integer directional_amt;
         if(tmod)directional_amt=llFloor(amt*tmod);
-        else lbapos(amt,pos,targetPos);
+        else directional_amt=lbapos(amt,pos,targetPos);
         if(directional_amt)hp-=directional_amt;
         else //Failed to do damage
         {
