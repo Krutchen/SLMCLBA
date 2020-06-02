@@ -11,7 +11,7 @@ Secondary Lionheart - Method and integration
 Criss Ixtar - For collision-location concept and idea.
 
 */
-string ver="DHv1.3.1";//LBA Version
+string ver="DHv1.3.2";//LBA Version
 integer mhp=200;//Maximum HP
 integer hp=mhp;//Current HP
 //Positive Numbers Deal Damage
