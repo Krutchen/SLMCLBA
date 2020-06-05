@@ -5,13 +5,13 @@ Default settings may make the system incompatible with certain rulesets and equi
 Do [not] use this as your default LBA parser as it would not be optimized for use in equipment that has no intention of benefitting from directional damage resistances. Use the standard LBA or LBH core instead.
 
 [CREDITS]
-datbot Resident/Criss Ixtar - For the initial proof of concept and idea.
+Criss Ixtar - For the initial proof of concept and idea.
 Dread Hudson - Establishing the standard LBA format.
 Secondary Lionheart - Method and integration
 Criss Ixtar - For collision-location concept and idea.
 
 */
-string ver="DHv1.3.4";//LBA Version
+string ver="DHv1.3.5";//LBA Version
 integer mhp=200;//Maximum HP
 integer hp=mhp;//Current HP
 //Positive Numbers Deal Damage
@@ -138,7 +138,13 @@ die()
     //llResetScript();//Debug
     llDie();//Otherwise, use this
 }
-vector tar(key id)
+integer los(vector start, vector target)//1=LoS,0=Obstructed
+{
+    list ray=llCastRay(start,target,[RC_REJECT_TYPES,RC_REJECT_AGENTS,RC_DATA_FLAGS,RC_GET_ROOT_KEY,RC_MAX_HITS,1]);
+    if(llList2Vector(ray,1)==ZERO_VECTOR)return 1;
+    else return 0;
+}
+vector tar(key id)//Deprecated
 {
     vector av=(vector)((string)llGetObjectDetails(id,[OBJECT_POS]));
     return av;
@@ -198,8 +204,9 @@ default
                 if(llList2Integer(data,1))
                 {
                     float dist=llVecDist(targetPos,pos)-2.0;
-                    targetPos=targetPos+<dist,0.0,0.0>*llList2Rot(data,2);
-                    damage((integer)amt,id,pos,targetPos,0.0,name);
+                    vector posfix=targetPos+<dist,0.0,0.0>*llList2Rot(data,2);
+                    if(los(pos,posfix))damage((integer)amt,id,pos,posfix,0.0,name);
+                    else damage((integer)amt,id,pos,targetPos,0.0,name);
                 }
                 else damage((integer)amt,id,pos,targetPos,tmod,name);
             }
