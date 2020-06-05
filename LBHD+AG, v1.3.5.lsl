@@ -132,7 +132,7 @@ float collisionmod(vector pos, vector targetPos)
     else return 0.0;
 }
 //Damage Processor
-damage(integer amt, key id,vector pos, vector targetPos, float tmod)
+damage(integer amt, key id,vector pos, vector targetPos, float tmod,string name)
 {
     if(amt>atcap)amt=atcap;
     if(amt<0)//Allows the object to be healed/repaired
@@ -159,7 +159,7 @@ damage(integer amt, key id,vector pos, vector targetPos, float tmod)
             llRegionSayTo(llGetOwnerKey(id),0,"Attack was stopped by armor.");
             return;
         }
-        llOwnerSay("/me took "+(string)directional_amt+" ("+(string)amt+") damage");//Used to debug output.
+        llOwnerSay("/me took "+(string)directional_amt+" ("+(string)amt+") damage from "+name+" by "+llKey2Name(llGetOwnerKey(id)));//Used to debug output.
         llRegionSayTo(llGetOwnerKey(id),0,"/me took "+(string)directional_amt+" ("+(string)amt+") damage");
     }
     if(hp<1)die();
@@ -250,13 +250,13 @@ default
                         {
                             float dist=llVecDist(targetPos,pos)-2.0;
                             vector posfix=targetPos+<dist,0.0,0.0>*llList2Rot(data,2);
-                            if(los(pos,posfix))damage((integer)amt,id,pos,posfix,0.0);
-                            else damage((integer)amt,id,pos,targetPos,0.0);
+                            if(los(pos,posfix))damage((integer)amt,id,pos,posfix,0.0,name);
+                            else damage((integer)amt,id,pos,targetPos,0.0,name);
                         }
                         else damage(amt,id,pos,targetPos,tmod);
                     }
                 }
-                else damage(amt,id,pos,targetPos,0.0);
+                else damage(amt,id,pos,targetPos,0.0,name);
             }
         }
     }
