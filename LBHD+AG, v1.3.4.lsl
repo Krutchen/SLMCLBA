@@ -11,7 +11,7 @@ Secondary Lionheart - Method and integration
 Criss Ixtar - For collision-location concept and idea.
 
 */
-string ver="DHAGv1.3.4";//LBA Version
+string ver="DHAGv1.3.5";//LBA Version
 integer mhp=200;//Maximum HP
 integer hp=mhp;//Current HP
 //Anti-Grief
@@ -178,7 +178,13 @@ die()
     //llResetScript();//Debug
     llDie();//Otherwise, use this
 }
-vector tar(key id)
+integer los(vector start, vector target)//1=LoS,0=Obstructed
+{
+    list ray=llCastRay(start,target,[RC_REJECT_TYPES,RC_REJECT_AGENTS,RC_DATA_FLAGS,RC_GET_ROOT_KEY,RC_MAX_HITS,1]);
+    if(llList2Vector(ray,1)==ZERO_VECTOR)return 1;
+    else return 0;
+}
+vector tar(key id)//Deprecated
 {
     vector av=(vector)((string)llGetObjectDetails(id,[OBJECT_POS]));
     return av;
@@ -244,7 +250,8 @@ default
                         {
                             float dist=llVecDist(targetPos,pos)-2.0;
                             targetPos=targetPos+<dist,0.0,0.0>*llList2Rot(data,2);
-                            damage((integer)amt,id,pos,targetPos,tmod);
+                            if(los(pos,posfix))damage((integer)amt,id,pos,posfix,0.0);
+                            else damage((integer)amt,id,pos,targetPos,0.0);
                         }
                         else damage(amt,id,pos,targetPos,tmod);
                     }
