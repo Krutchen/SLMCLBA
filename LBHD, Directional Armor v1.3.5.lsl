@@ -119,7 +119,7 @@ damage(integer amt, key id,vector pos, vector targetPos, float tmod)
             llRegionSayTo(llGetOwnerKey(id),0,"Attack was stopped by armor.");
             return;
         }
-        llOwnerSay("/me took "+(string)directional_amt+" ("+(string)amt+") damage from "+name+" by "+llKey2Name(llGetOwnerKey(id)));//Used to debug output.//Used to debug output.
+        llOwnerSay("/me took "+(string)directional_amt+" ("+(string)amt+") damage from "+name+" by "+llKey2Name(llGetOwnerKey(id)));//Used to debug output.
         llRegionSayTo(llGetOwnerKey(id),0,"/me took "+(string)directional_amt+" ("+(string)amt+") damage");
     }
     if(hp<1)die();
