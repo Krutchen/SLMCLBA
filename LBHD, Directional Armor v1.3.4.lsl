@@ -11,7 +11,7 @@ Secondary Lionheart - Method and integration
 Criss Ixtar - For collision-location concept and idea.
 
 */
-string ver="DHv1.3.2";//LBA Version
+string ver="DHv1.3.4";//LBA Version
 integer mhp=200;//Maximum HP
 integer hp=mhp;//Current HP
 //Positive Numbers Deal Damage
@@ -30,7 +30,7 @@ float bottom=1.2;
 float front_threshold=25.0;//Use positive floats, determines forward range
 float back_threshold=155.0;//Use positive floats, determines backward range
 float height_threshold=0.75;//How far up/down the Z axis should the source be to registered a top or bottom hit. Should be roughly half the vehicle's height to ground from root position.
-integer lbapos(float dmg,vector pos, vector targetPos)
+integer lbapos(float dmg,vector pos, vector targetPos, string name)
 {
     //We'll use numbers greater than -25.0 but less than 25.0 as our forward direction. This means that numbers less -155.0 and greater than 155.0 are our rear. This will need to be changed based on vehicle size and shape. This will not work on Rho because she's too fat.
     if(targetPos)
@@ -119,7 +119,7 @@ damage(integer amt, key id,vector pos, vector targetPos, float tmod)
             llRegionSayTo(llGetOwnerKey(id),0,"Attack was stopped by armor.");
             return;
         }
-        llOwnerSay("/me took "+(string)directional_amt+" ("+(string)amt+") damage");//Used to debug output.
+        llOwnerSay("/me took "+(string)directional_amt+" ("+(string)amt+") damage from "+name+" by "+llKey2Name(llGetOwnerKey(id)));//Used to debug output.//Used to debug output.
         llRegionSayTo(llGetOwnerKey(id),0,"/me took "+(string)directional_amt+" ("+(string)amt+") damage");
     }
     if(hp<1)die();
@@ -186,14 +186,23 @@ default
         list parse=llParseString2List(message,[","],[" "]);
         if(llList2Key(parse,0)==me)//targetcheck
         {
+            list data=llGetObjectDetails(id,[OBJECT_POS,OBJECT_ATTACHED_POINT,OBJECT_ROT]);
             vector pos=llGetPos();
-            vector targetPos=tar(id);
+            vector targetPos=llList2Vector(data,0);
             float tmod;
             integer f=llListFindList(tracker,[name]);
             if(f>-1)tmod=llList2Float(tracker,f+1);
             float amt=llList2Float(parse,-1);
-            if(llFabs(amt)<666.0)damage((integer)amt,id,pos,targetPos,tmod);//Use this code to allow object healing, Blocks overflow attempts
-            //if(amt>0)damage((integer)amt,id,pos,targetPos);//Use this code if you do not wish to support healing
+            if(llFabs(amt)<666.0)
+            {
+                if(llList2Integer(data,1))
+                {
+                    float dist=llVecDist(targetPos,pos)-2.0;
+                    targetPos=targetPos+<dist,0.0,0.0>*llList2Rot(data,2);
+                    damage((integer)amt,id,pos,targetPos,0.0,name);
+                }
+                else damage((integer)amt,id,pos,targetPos,tmod,name);
+            }
         }
     }
     collision_start(integer c)//Enable this block if you want to support legacy collisions.
