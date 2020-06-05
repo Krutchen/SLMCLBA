@@ -5,7 +5,7 @@ Default settings may make the system incompatible with certain rulesets and equi
 Do [not] use this as your default LBA parser as it would not be optimized for use in equipment that has no intention of benefitting from directional damage resistances. Use the standard LBA or LBH core instead.
 
 [CREDITS]
-datbot Resident/Criss Ixtar - For the initial proof of concept and idea.
+Criss Ixtar - For the initial proof of concept and idea.
 Dread Hudson - Establishing the standard LBA format.
 Secondary Lionheart - Method and integration
 Criss Ixtar - For collision-location concept and idea.
@@ -249,7 +249,7 @@ default
                         if(llList2Integer(data,1))
                         {
                             float dist=llVecDist(targetPos,pos)-2.0;
-                            targetPos=targetPos+<dist,0.0,0.0>*llList2Rot(data,2);
+                            vector posfix=targetPos+<dist,0.0,0.0>*llList2Rot(data,2);
                             if(los(pos,posfix))damage((integer)amt,id,pos,posfix,0.0);
                             else damage((integer)amt,id,pos,targetPos,0.0);
                         }
