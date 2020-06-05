@@ -11,7 +11,7 @@ Secondary Lionheart - Method and integration
 Criss Ixtar - For collision-location concept and idea.
 
 */
-string ver="DHAGv1.3.1";//LBA Version
+string ver="DHAGv1.3.4";//LBA Version
 integer mhp=200;//Maximum HP
 integer hp=mhp;//Current HP
 //Anti-Grief
@@ -226,8 +226,9 @@ default
         list parse=llParseString2List(message,[","],[" "]);
         if(llList2Key(parse,0)==me)//targetcheck
         {
+            list data=llGetObjectDetails(id,[OBJECT_POS,OBJECT_ATTACHED_POINT,OBJECT_ROT]);
             vector pos=llGetPos();
-            vector targetPos=tar(id);
+            vector targetPos=llList2Vector(data,0);
             integer amt=llList2Integer(parse,-1);
             if(llFabs(amt)<666)//Use this code to allow object healing, Blocks overflow attempts
             {
@@ -239,14 +240,20 @@ default
                         integer f=llListFindList(tracker,[name]);
                         if(f>-1)tmod=llList2Float(tracker,f+1);
                         llSetTimerEvent(interval);//Reset interval on new damage update
-                        damage(amt,id,pos,targetPos,tmod);
+                        if(llList2Integer(data,1))
+                        {
+                            float dist=llVecDist(targetPos,pos)-2.0;
+                            targetPos=targetPos+<dist,0.0,0.0>*llList2Rot(data,2);
+                            damage((integer)amt,id,pos,targetPos,tmod);
+                        }
+                        else damage(amt,id,pos,targetPos,tmod);
                     }
                 }
                 else damage(amt,id,pos,targetPos,0.0);
             }
         }
     }
-    collision_start(integer c)//Enable this block if you want to support legacy collisions.
+    collision_start(integer c)
     {
         if(llVecMag(llDetectedVel(0))>40.0)
         {
