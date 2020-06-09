@@ -18,6 +18,7 @@ datbot - For complaining about things he already "fixed" instead of actually hel
 
 Hadet - For convincing Secondary to make a git for LBHD
 
+Soapy Boi Gay Pink Dragon - For inspiring the creation of the Hansen, a community effort that has rallied support and development for this project and showing off the capabilities of a directional armor system.
 
 [VERSIONS]
 
