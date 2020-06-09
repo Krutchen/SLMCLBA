@@ -11,7 +11,7 @@ Secondary Lionheart - Method and integration
 Criss Ixtar - For collision-location concept and idea.
 
 */
-string ver="DHAGv1.3.5";//LBA Version
+string ver="DHAGv1.3.6";//LBA Version
 integer mhp=200;//Maximum HP
 integer hp=mhp;//Current HP
 //Anti-Grief
@@ -70,40 +70,6 @@ float bottom=1.2;
 float front_threshold=25.0;//Use positive floats, determines forward range
 float back_threshold=155.0;//Use positive floats, determines backward range
 float height_threshold=0.75;//How far up/down the Z axis should the source be to registered a top or bottom hit. Should be roughly half the vehicle's height to ground from root position.
-integer lbapos(float dmg,vector pos, vector targetPos)
-{
-    //We'll use numbers greater than -25.0 but less than 25.0 as our forward direction. This means that numbers less -155.0 and greater than 155.0 are our rear. This will need to be changed based on vehicle size and shape. This will not work on Rho because she's too fat.
-    if(targetPos)
-    {
-        float dist=llVecDist(pos,targetPos);
-        if(dist<1.0)return llFloor(dmg*middle);//This catches explosions which rezzes AT in the object's root position.
-        else
-        {
-            float mod=targetPos.z-pos.z;
-            if(llFabs(mod)>=height_threshold)//Determines top/bottom hits
-            {
-                if(mod>0.0)mod=top;//Top check
-                else mod=bottom;//Bottom check
-            }
-            else mod=1.0;//Else reset it to 1.0
-            rotation targetRot=llRotBetween(<1.0,0.0,0.0>*llGetRot(),llVecNorm(<targetPos.x,targetPos.y,pos.z>-pos));
-            vector targetRotVec=llRot2Euler(targetRot)*RAD_TO_DEG;
-            //You can optimize this further by doing angles in radians as opposed to degrees. This is written in degrees so its easier to read/follow
-            //For those who care to do so, here's the formulas: [Degrees = (Radians*180.0)/PI] or [Radians = (Degrees*PI)/180.0]
-            //Degrees should be returned in values between -180.0 and 180.0
-            //llSay(0,"Angle: "+(string)trotvec.z+"| Pos offset: "+(string)(tpos-pos)+" | RotBetween: "+(string)trot);//Debug output
-            //Now we use the Z-Axis to calculate the horizonal directions.
-            //Note that vertical direction isn't factored, only the horizonal angle. This the vehicle is sliced up like a pie and damage will be based on how far and which direction from the center the projectile strikes when it hits the top or bottom.
-            if(targetRotVec.z>-front_threshold&&targetRotVec.z<front_threshold)//Front
-                return llFloor((dmg*front)*mod);
-            else if(targetRotVec.z<-back_threshold||targetRotVec.z>back_threshold)//Back
-                return llFloor((dmg*back)*mod);
-            else //If it didn't hit any previous angles, the only thing left to hit is the sides.
-                return llFloor((dmg*side)*mod);
-        }
-    }
-    else return 0;//If a no vector is returned, do not process damage.
-}
 float collisionmod(vector pos, vector targetPos)
 {
     if(targetPos)
@@ -151,7 +117,7 @@ damage(integer amt, key id,vector pos, vector targetPos, float tmod,string name)
     {
         integer directional_amt;
         if(tmod)directional_amt=llFloor(amt*tmod);
-        else directional_amt=lbapos(amt,pos,targetPos);
+        else directional_amt=llFloor(collisionmod(pos,targetPos)*(float)amt);
         if(directional_amt)hp-=directional_amt;
         else //Failed to do damage
         {
