@@ -1,16 +1,3 @@
-/*[IMPORTANT] This requires vehicles/deployables to be aligned properly down the X-axis in order to function properly. Objects which require a rotational offset to function will need to be adjusted.
-
-Default settings may make the system incompatible with certain rulesets and equipment. However, notes and code for changing these features is present for those who wish to use them.
-
-Do [not] use this as your default LBA parser as it would not be optimized for use in equipment that has no intention of benefitting from directional damage resistances. Use the standard LBA or LBH core instead.
-
-[CREDITS]
-Criss Ixtar - For the initial proof of concept and idea.
-Dread Hudson - Establishing the standard LBA format.
-Secondary Lionheart - Method and integration
-Criss Ixtar - For collision-location concept and idea and extensive testing contribution
-
-*/
 string ver="DHv1.3.6";//LBA Version
 integer mhp=200;//Maximum HP
 integer hp=mhp;//Current HP
