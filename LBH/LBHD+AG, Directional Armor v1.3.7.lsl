@@ -1,4 +1,4 @@
-string ver="DHAGv1.3.6";//LBA Version
+string ver="DHAGv1.3.7";//LBA Version
 integer mhp=200;//Maximum HP
 integer hp=mhp;//Current HP
 //Anti-Grief
@@ -72,7 +72,9 @@ float collisionmod(vector pos, vector targetPos)
                 else mod=bottom;//Bottom check
             }
             else mod=1.0;//Else reset it to 1.0
-            rotation targetRot=llRotBetween(<1.0,0.0,0.0>*llGetRot(),llVecNorm(<targetPos.x,targetPos.y,pos.z>-pos));
+            vector angle=<1.0,0.0,0.0>*llGetRot();
+            angle.z=0.0;
+            rotation targetRot=llRotBetween(llVecNorm(angle),llVecNorm(<targetPos.x,targetPos.y,pos.z>-pos));
             vector targetRotVec=llRot2Euler(targetRot)*RAD_TO_DEG;
             if(targetRotVec.z>-front_threshold&&targetRotVec.z<front_threshold)//Front
                 return front*mod;
