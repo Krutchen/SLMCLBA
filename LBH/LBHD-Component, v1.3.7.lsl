@@ -1,5 +1,5 @@
 //MBTLBA was a stupid name
-string ver="DHCv1.3.6,";//LBA Version
+string ver="DHCv1.3.7,";//LBA Version
 //efx
 integer burning;//burning flag
 integer repair;//repair timer
@@ -45,7 +45,9 @@ vector collisionmod(vector pos, vector targetPos)
                 }
             }
             else mod=1.0;//Else reset it to 1.0
-            rotation targetRot=llRotBetween(<1.0,0.0,0.0>*llGetRot(),llVecNorm(<targetPos.x,targetPos.y,pos.z>-pos));
+            vector angle=<1.0,0.0,0.0>*llGetRot();
+            angle.z=0.0;
+            rotation targetRot=llRotBetween(llVecNorm(angle),llVecNorm(<targetPos.x,targetPos.y,pos.z>-pos));
             vector targetRotVec=llRot2Euler(targetRot)*RAD_TO_DEG;
             if(targetRotVec.z>-front_threshold&&targetRotVec.z<front_threshold)return <front*mod,trak,0.0>;
             else if(targetRotVec.z<-back_threshold||targetRotVec.z>back_threshold)return <back*mod,trak,1.0>;//chance to burn
