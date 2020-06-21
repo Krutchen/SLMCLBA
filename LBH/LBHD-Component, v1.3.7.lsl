@@ -270,7 +270,7 @@ default
             //Updates objects of the same name to the most recent.
         }
     }
-    timer()/
+    timer()
     {
         if(burning||detrack)
         {
