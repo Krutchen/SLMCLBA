@@ -266,7 +266,7 @@ default
                 vector cmod=collisionmod(gpos,llDetectedPos(0));
                 if(cmod)tracker+=[name,cmod];
             }
-            //Stores data as follows: OBJECT_NAME,OBJECT_POS
+            //Stores data as follows: OBJECT_NAME,OBJECT_MODIFIER
             //Updates objects of the same name to the most recent.
         }
     }
