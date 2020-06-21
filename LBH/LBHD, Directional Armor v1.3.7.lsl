@@ -167,7 +167,7 @@ default
             }
         }
     }
-    collision_start(integer c)//Enable this block if you want to support legacy collisions.
+    collision_start(integer c)
     {
         if(llVecMag(llDetectedVel(0))>40.0)
         {
@@ -181,7 +181,7 @@ default
                 if(llGetListLength(tracker)>10)tracker=llDeleteSubList(tracker,0,1);//Delete eldest entry to prevent stack-heap
                 tracker+=[name,collisionmod(gpos,llDetectedPos(0))];
             }
-            //Stores data as follows: OBJECT_NAME,OBJECT_POS
+            //Stores data as follows: OBJECT_NAME,OBJECT_MODIFIER
             //Updates objects of the same name to the most recent.
         }
     }
