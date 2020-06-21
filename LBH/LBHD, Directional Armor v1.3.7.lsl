@@ -12,7 +12,7 @@ float back=1.5;
 float middle=0.1;
 //Note that following modifiers multiply the final damage. So it stacks multiplicatively with the previous modifiers
 float top=1.2;
-float bottom=1.2;
+float bottom=1.5;
 //Directional Processor
 float front_threshold=25.0;//Use positive floats, determines forward range
 float back_threshold=155.0;//Use positive floats, determines backward range
