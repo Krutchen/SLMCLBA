@@ -14,8 +14,6 @@ Dread Hudson - Establishing the standard LBA format.
 
 Secondary Lionheart - Method, integration, and code.
 
-datbot - For complaining about things he already "fixed" instead of actually helping the community fix them. #OpenSource
-
 Hadet - For convincing Secondary to make a git for LBHD
 
 Soapy Boi Gay Pink Dragon - For inspiring the creation of the Hansen, a community effort that has rallied support and development for this project and has allowed us to show off the capabilities of a directional armor system.
