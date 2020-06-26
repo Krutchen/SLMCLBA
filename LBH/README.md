@@ -20,10 +20,10 @@ Soapy Boi Gay Pink Dragon - For inspiring the creation of the Hansen, a communit
 
 [VERSIONS]
 
-Slim - Basic Parser.
+Slim - Basic Parser, can support Collision Damage.
 
 AG - Anti-Grief System Included
 
-HD - Directional Armor
+HD - Directional Armor, does not support Collision Damage.
 
 Component - Includes component system
