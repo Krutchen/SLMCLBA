@@ -1,5 +1,5 @@
 //MBTLBA was a stupid name
-string ver="DHCv1.3.7,";//LBA Version
+string ver="DHCv1.4";//LBA Version
 //efx
 integer burning;//burning flag
 integer repair;//repair timer
@@ -24,7 +24,8 @@ float bottom=1.2;
 //Directional Processor
 float front_threshold=20.0;//Use positive floats, determines forward range
 float back_threshold=160.0;//Use positive floats, determines backward range
-float height_threshold=0.7;//How far up/down the Z axis should the source be to registered a top or bottom hit. Should be roughly half the vehicle's height.
+float top_threshold=0.75;//How far up the Z axis should the source be to registered a top. (Positive Number)
+float bottom_threshold=-0.75;//How far down the Z axis should the source be to registered a bottom hit. (Negative Number)
 vector collisionmod(vector pos, vector targetPos)
 {
     if(targetPos)
@@ -35,14 +36,11 @@ vector collisionmod(vector pos, vector targetPos)
         else
         {
             float mod=targetPos.z-pos.z;
-            if(llFabs(mod)>=height_threshold)//Determines top/bottom hits
+            if(mod>=top_threshold)mod=top;//Top check
+            else if(mod<=bottom_threshold)
             {
-                if(mod>0.0)mod=top;//Top check
-                else
-                {
-                    ++trak;//Chance to detrack
-                    mod=bottom;//Bottom check
-                }
+                ++trak;//Chance to detrack
+                mod=bottom;//Bottom check
             }
             else mod=1.0;//Else reset it to 1.0
             vector angle=<1.0,0.0,0.0>*llGetRot();
@@ -151,7 +149,7 @@ update()//SetText
         if(!ml)mod+="\n Repair-in-Progress \n"+(string)((integer)repair*10)+"/100";
     }
     llSetLinkPrimitiveParamsFast(-4,[PRIM_TEXT,"[LBHD]\n "+(string)hp+" / "+(string)mhp+" HP"+mod,<0.0,0.75,1.0>,1.0,
-        PRIM_DESC,"LBA.v."+ver+(string)hp+","+(string)mhp+","+(string)atcap+",666"+modifierstring]);
+        PRIM_DESC,"LBA.v."+ver+","+(string)hp+","+(string)mhp+","+(string)atcap+",666"+modifierstring]);
         //In order: Current HP, Max HP, Max AT accepted, Max healing accepted (Not implemented)
 }
 die()
