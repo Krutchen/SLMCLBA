@@ -1,4 +1,4 @@
-string ver="DHv1.3.7";//LBA Version
+string ver="DHv1.4";//LBA Version
 integer mhp=200;//Maximum HP
 integer hp=mhp;//Current HP
 //Positive Numbers Deal Damage
@@ -16,7 +16,8 @@ float bottom=1.5;
 //Directional Processor
 float front_threshold=25.0;//Use positive floats, determines forward range
 float back_threshold=155.0;//Use positive floats, determines backward range
-float height_threshold=0.75;//How far up/down the Z axis should the source be to registered a top or bottom hit. Should be roughly half the vehicle's height to ground from root position.
+float top_threshold=0.75;//How far up the Z axis should the source be to registered a top. (Positive Number)
+float bottom_threshold=-0.75;//How far down the Z axis should the source be to registered a bottom hit. (Negative Number)
 float collisionmod(vector pos, vector targetPos)
 {
     if(targetPos)
@@ -26,11 +27,8 @@ float collisionmod(vector pos, vector targetPos)
         else
         {
             float mod=targetPos.z-pos.z;
-            if(llFabs(mod)>=height_threshold)//Determines top/bottom hits
-            {
-                if(mod>0.0)mod=top;//Top check
-                else mod=bottom;//Bottom check
-            }
+            if(mod>=top_threshold)mod=top;//Top check
+            else if(mod<=bottom_threshold)mod=bottom;//Bottom check
             else mod=1.0;//Else reset it to 1.0
             vector angle=<1.0,0.0,0.0>*llGetRot();
             angle.z=0.0;
