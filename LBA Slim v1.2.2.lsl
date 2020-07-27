@@ -1,107 +1,97 @@
-//A slim and simplified version of the LBA parser.
-integer mhp=100;//Maximum HP
-integer hp=mhp;//Current HP
-//Positive Numbers Deal Damage
-//Negative Numbers Restore Health
-integer atcap=50;
-//Damage Processor
-damage(integer amt, key id,vector pos, vector targetPos)
+integer hp;             // Current hp
+integer hpmax = 25;     // My default HP value, LBA Slim is great for values less than 50
+integer cap = 0;        // Maximum damage taken per hit, leave this at 0 if you dont want to use the cap
+integer link = 0;       // Text display link number
+integer hex;            // My channel
+key me;                 // My key
+list buffer;
+integer die = TRUE;     // Does this script kill the object -OR- sends a message to a core script
+                        // for plug and play LBA
+
+updateHP()
 {
-    if(amt>atcap)amt=atcap;
-    if(amt<0)//Allows the object to be healed/repaired
+    if(hp < 1)
     {
-        if(llGetTime()>1.0)//Optional healing cooldown
-        {
-            if(amt>(float)hp*0.1)amt=llRound((float)hp*0.1);//Optional healing cap
-            hp-=amt;
-            if(hp>mhp)hp=mhp;//Used to prevent overhealing
-            llResetTime();
-        }
-        //Be sure to update the listen event code block to allow negative damage values through.
+        if(buffer != []) llOwnerSay(llDumpList2String(buffer, " | "));
+        llSleep(0.1);
+        if(!die) llMessageLinked(LINK_THIS, 1, "dead", NULL_KEY);
+        else llDie();
     }
-    /*else if(amt<6)return; //Blocks micro-LBA*/
-    else if(amt)
+    else
     {
-        if(amt>atcap)amt=atcap;
-        hp-=amt;
+        llSetLinkPrimitiveParamsFast(link,[
+        PRIM_TEXT,"[LBA-Slim]\n[" + (string)(hp) + "/" +(string)(hpmax) + "]",<0.0,1.0,0.0>,1.0,
+        PRIM_LINK_TARGET, LINK_THIS,
+        PRIM_DESC,"LBA.v.L.2.22," + (string)hp + "," + (string)hpmax + "," + (string)cap
+        ]);
     }
-    else return;
-    if(hp<1)die();
-    else update();
 }
 
-update()//SetText
+init(integer s)
 {
-    llSetLinkPrimitiveParamsFast(-4,[PRIM_TEXT,"[LBHS]\n "+(string)hp+" / "+(string)mhp+" HP",<1.0,1.0,1.0>,1.0,
-        PRIM_DESC,"LBA.v.LBHS,"+(string)hp+","+(string)mhp+","+(string)atcap+",666"]);
-        //In order: Current HP, Max HP, Max AT accepted, Max healing accepted (Not implemented)
+    if(s <= hpmax && s > 0) hp = s;
+    else hp = hpmax;
+    if(!cap) cap = hpmax;
+    me = llGetKey();
+    hex = (integer)("0x" + llGetSubString(llMD5String((string)me,0), 0, 3));
+    llListen(hex, "","","");
+    updateHP();
 }
-die()
-{
-    //Add extra shit here
-    //llResetScript();//Debug
-    llDie();//Otherwise, use this
-}
-vector tar(key id)
-{
-    vector av=(vector)((string)llGetObjectDetails(id,[OBJECT_POS]));
-    return av;
-}
-key user;
-key gen;//Object rezzer
-key me;
-integer hear;
-boot()
-{
-    user=llGetOwner();
-    me=llGetKey();
-    gen=(string)llGetObjectDetails(me,[OBJECT_REZZER_KEY]);
-    if(hear)llListenRemove(hear);
-    integer hex=(integer)("0x" + llGetSubString(llMD5String((string)me,0), 0, 3));
-    hear=llListen(hex,"","","");
-    llSetTimerEvent(5.0);//Used for auto-delete.
-    update();
-}
+
 default
 {
     state_entry()
     {
-        boot();
+        llSetLinkPrimitiveParams(LINK_SET, [PRIM_TEXT,"", <1,1,1>,1]);
+        init(hpmax);
     }
-    on_rez(integer p)
+    on_rez(integer sp)
     {
-        if(p>1)//Allows HUD/Objects to set HP value when rezzed with a param, otherwise uses default
+        init(sp);
+    }
+    collision_start(integer n)
+    {
+        while(n--)
         {
-            mhp=p;
-            hp=p;
+            if(llVecMag(llDetectedVel(n)) > 25 && llDetectedType(n) != 3) --hp;
         }
-        boot();
+        updateHP();
     }
-    listen(integer chan, string name, key id, string message)
+    listen(integer c, string n, key id, string m)
     {
-        //[ALWAYS] USE llRegionSayTo(). Do not flood the channel with useless garbage that'll poll every object in listening range.
-        list parse=llParseString2List(message,[","],[" "]);
-        if(llList2Key(parse,0)==me)//targetcheck
+        list l = llParseString2List(m,[","],[]);
+        string target = llList2String(l,0);
+        integer dmg = (integer)llList2String(l,1);
+        if (cap) // use cap to limit repairs
         {
-            vector pos=llGetPos();
-            vector targetPos=tar(id);
-            float amt=llList2Float(parse,-1);
-            if(llFabs(amt)<666.0)damage((integer)amt,id,pos,targetPos);//Use this code to allow object healing, Blocks overflow attempts
-            //if(amt>0)damage((integer)amt,id,pos,targetPos);//Use this code if you do not wish to support healing
+            if (dmg < -cap) dmg = -cap;
         }
-    }
-    collision_start(integer c)//Enable this block if you want to support legacy collisions.
-    {
-        if(llVecMag(llDetectedVel(0))>40.0)
+        else if (dmg < -hpmax) dmg = -hpmax; // use maxhp to limit repairs
+        if(c == hex)
         {
-            hp-=c;
-            if(hp<1)die();//llDie();
-            else update();
-        }
+            if(target == (string)me)
+            {
+                string name = llKey2Name(llGetOwnerKey(id));
+                if(dmg > cap) hp -= cap;
+                else hp -= dmg;
+                if(hp > hpmax) hp = hpmax;
+                integer index = llListFindList(buffer, [name]);
+                if(index < 0) buffer += [name,dmg];
+                else
+                {
+                    dmg = llList2Integer(buffer,index+1) + dmg;
+                    buffer = llListReplaceList(buffer, [name,dmg], index, index+1);
+                }
+                updateHP();
+                llSetTimerEvent(2);
+            }
+        }       
     }
-    timer()//Auto-deleter. Will kill object if avatar leaves the region or spawning object is removed.
+    
+    timer()
     {
-        if(tar(gen))return;
-        llDie();
+        llOwnerSay(llDumpList2String(buffer, " | "));
+        buffer = [];
+        llSetTimerEvent(0);
     }
 }
