@@ -1,5 +1,5 @@
 //MBTLBA was a stupid name
-string ver="DHCv1.4.1";//LBA Version
+string ver="DHCv1.4.2";//LBA Version
 //efx
 integer burning;//burning flag
 integer repair;//repair timer
@@ -226,13 +226,13 @@ default
                 list data=llGetObjectDetails(id,[OBJECT_POS,OBJECT_ATTACHED_POINT,OBJECT_ROT,OBJECT_REZZER_KEY]);
                 vector pos=llGetPos();
                 vector targetPos=llList2Vector(data,0);
-                float tmod;
+                vector tmod;
                 integer f=llListFindList(tracker,[name]);
-                if(f>-1)tmod=llList2Float(tracker,f+1);
+                if(f>-1)tmod=llList2Vector(tracker,f+1);
                 else //Rezzer rezzer's rezzer rezzer
                 {
                     f=llListFindList(tracker,[llList2Key(data,4)]);
-                    if(f>-1)tmod=llList2Float(tracker,f+1);
+                    if(f>-1)tmod=llList2Vector(tracker,f+1);
                 }
                 float amt=llList2Float(parse,-1);
                 if(llFabs(amt)<666.0)
