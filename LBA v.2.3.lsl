@@ -350,3 +350,6 @@ default
 //  Blacklisting now triggers on 1.25 of cap, otherwise damage is silently dropped in case of things that are SLIGHTLY borderline.
 //  Totals list will track an avatars TOTAL DAMAGE over the lifetime of the vehicle. If someone gets blacklisted by exceeding DPM their entry in total will be refunded.
 //  For the sake of the antigrief functioning, PROC has to be cleared before it can die. But other than that, damage is now processed when you recieve it and not with a 1s proc delay.
+//  Also has lazy namespace dropping, if it's just a key or a float/integer it gets dropped because that's baby grief
+//  if((key)n)return;
+//  if ((string)((float)n)==n||(string)((integer)n)==n)return;
