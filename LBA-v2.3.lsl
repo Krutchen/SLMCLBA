@@ -273,7 +273,7 @@ default
                     if(desc)//Okay, do I have a description and all that? Will be passed down from attach & sit checking and etc
                     {
                         //integer rf=llListFindList(recent,[osrc]);//Have I already generated an AT cap from this hitbox?
-                        if(rf!=-1)atcap=llList2Integer(recent,rf+3);
+                        if(rf!=-1)atcap=llList2Integer(recent,rf+4);
                         else
                         {
                             list dl=llCSV2List(desc);
@@ -307,6 +307,8 @@ default
                                 integer tdamage=llList2Integer(totals,tf+1);
                                 llOwnerSay("/me :: secondlife:///app/agent/"+(string)owner+"/about has exceeded their AT Cap for "+llKey2Name(src)+" of "+(string)atcap+" with "+(string)new+" total damage! 
         This avatar has sourced "+(string)tdamage+" before being blacklisted. Blacklisting and refunding all damage!");
+                                llRegionSayTo(owner,0,"/me :: You have exceeded your AT Cap for "+llKey2Name(src)+" of "+(string)atcap+" with "+(string)new+" total damage.
+You avatar has sourced "+(string)tdamage+" before being blacklisted, which has now been refunded. If you believe this is in error, contact secondlife:///app/agent/"+(string)llGetOwner()+"/about .");
                                 blacklist+=(string)owner;
                                 hp+=tdamage;
                                 if(hp<=0)hp=0;
