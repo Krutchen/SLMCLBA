@@ -156,7 +156,8 @@ default
                     else//If not an attachment, can we do rezzer key chaining?
                     {
                         integer tries=3;//We'll see if we can do 3 chains, that's pretty liberal because usually 1 or 2 will do it.
-                        if(llGetSubString(desc,0,5)=="LBA.v."&&llGetListLength(llCSV2List(desc))>=3&&(integer)((string)llGetObjectDetails(id,[OBJECT_RUNNING_SCRIPT_COUNT]))>1)src=id;//Is this a delpoyable?
+                        list dl=llCSV2List(desc);
+                        if(llGetSubString(desc,0,5)=="LBA.v."&&llGetListLength(dl)>=3&&llList2Integer(dl,2)>0&&(integer)((string)llGetObjectDetails(id,[OBJECT_RUNNING_SCRIPT_COUNT]))>1)src=id;//Is this a delpoyable?
                         else 
                         {
                             if(llGetSubString(desc,0,5)=="LBA.v.")//Kind of messy but this checks 'is direct damager a landmine'. Check if it has a LBA flag
@@ -201,7 +202,8 @@ default
                                     if(!att)//Otherwise check their info
                                     {
                                         //Does this have a valid LBA description and more than one script? Then it's a deployable and you can decide that's your source.
-                                        if(llGetSubString(desc,0,5)=="LBA.v."&&llGetListLength(llCSV2List(desc))>=3&&llList2Integer(ownerinfo,4)>1)src=src2;
+                                        list dl=llCSV2List(desc);
+                                        if(llGetSubString(desc,0,5)=="LBA.v."&&llGetListLength(dl)>=3&&llList2Integer(dl,2)>0&&llList2Integer(ownerinfo,4)>1)src=src2;
                                         else desc="";
                                     }
                                     else 
@@ -252,7 +254,8 @@ default
                                 key rck=llList2Key(rcfind,0);
                                 list info=llGetObjectDetails(rck,[OBJECT_DESC,OBJECT_RUNNING_SCRIPT_COUNT,OBJECT_OWNER]);
                                 desc=llList2String(info,0);
-                                if(llGetSubString(desc,0,5)=="LBA.v."&&llGetListLength(llCSV2List(desc))>=3&&llList2Integer(info,1)>1&&llList2Key(info,2)==owner)
+                                list dl=llCSV2List(desc);
+                                if(llGetSubString(desc,0,5)=="LBA.v."&&llGetListLength(dl)>=3&&llList2Integer(dl,2)>0&&llList2Integer(info,1)>1&&llList2Key(info,2)==owner)
                                 {
                                     //Do I have a valid LBA description, more than 1 script, and the same owner as the source? If so we can assume this is the hitbox.
                                     src=rck;
@@ -273,7 +276,8 @@ default
                         if(rf!=-1)atcap=llList2Integer(recent,rf+3);
                         else
                         {
-                            if(llGetSubString(desc,0,5)=="LBA.v."&&llGetListLength(llCSV2List(desc))>=3)//Checks validity of description
+                            list dl=llCSV2List(desc);
+                            if(llGetSubString(desc,0,5)=="LBA.v."&&llGetListLength(dl)>=3&&llList2Integer(dl,2)>0)//Checks validity of description
                             {
                                 atcap=85;//Because this is a valid source, bump up the default AT cap to 85 instead of 75
                                 list bb=llGetBoundingBox(src);//Get size
