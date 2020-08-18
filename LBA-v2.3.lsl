@@ -2,7 +2,7 @@
 //  These are your configurable values. You don't really need to change anything under this except for your style of death in the die() command
 integer link=LINK_THIS;//WHERE YOUR HP TEXT WILL BE DISPLAYED! DON'T FUCK UP!
 integer hp;//This is your HP. It is affected by rez params, but on startup it turns 
-integer maxhp=1000;//Max HP of your hitbox, yo.
+integer maxhp=100;//Max HP of your hitbox, yo.
 integer setupmessage=1;//This will enable state_entry AT cap help text.
 integer antigrief=1;//Whether or not Antigrief is active
 die()
@@ -87,11 +87,31 @@ default
             integer atcap=85;//Default AT cap for **Vehicles**
             list bb=llGetBoundingBox(llGetKey());
             vector tsize=llList2Vector(bb,1)-llList2Vector(bb,0);
+            integer bonus=0;
             float tvol=tsize.x*tsize.y*tsize.z;
+            integer mult=(integer)tvol/30;
+            if(tsize.x>=2&&tsize.y>=2)
+            {
+                if(tsize.z>tsize.x&&tsize.z>tsize.y)
+                {
+                    tsize.z=tsize.z*3;//determines it's taller than wide, so it's an at least 2x2xZ axis, so its thic and tall, so we'll call this a mech and give it a bonus to Z 'Volume'
+                    llOwnerSay("/me :: This is taller than it is wide, so we're going to assume it's a mech and triple the influence its Z size gives it. Z is now "+(string)tsize.z);
+                }
+                else
+                {
+                    if(maxhp<100)
+                    {
+                        bonus=(100-maxhp)/5;//If this is less than 100 HP we can call it a 'Glass cannon', the less HP it has compared to 100, the more fragile it is.
+                        llOwnerSay("/me :: This has less than 100 HP, but is scaled as a tank. Adding bonus of "+(string)bonus+" (100-maxhp)/5 due to the fragility.");
+                    }
+                }
+                tvol=tsize.x*tsize.y*tsize.z;//Get volume
+                mult=(integer)tvol/30+bonus;
+                atcap+=mult*10;//Generate new AT cap. The larger the vehicle the higher the cap before blacklisting triggers.
+            }
             llOwnerSay("/me :: Your hitbox size is "+(string)tsize+" :: with a volume of "+(string)tvol);
-            integer mult=(integer)tvol/40;
-            llOwnerSay("Your Multiplier (Tvol/40) is "+(string)mult);
-            atcap+=mult*10;
+            if(bonus)llOwnerSay("Your Multiplier (Tvol/30)+BONUS ("+(string)bonus+") is "+(string)mult);
+            else llOwnerSay("Your Multiplier (Tvol/30) is "+(string)mult);
             llOwnerSay("Your total AT cap is - "+(string)atcap+" (85 + "+(string)mult+" * 10)");
         }
     }
@@ -247,7 +267,7 @@ default
                         {
                             key root=(string)llGetObjectDetails(owner,[OBJECT_ROOT]);
                             vector rp=(vector)((string)llGetObjectDetails(root,[OBJECT_POS]));
-                            list rcfind=llCastRay(rp-<0,0,2>,rp+<0,0,2>,[RC_MAX_HITS,5,RC_REJECT_TYPES,RC_REJECT_AGENTS|RC_REJECT_LAND]);
+                            list rcfind=llCastRay(rp-<0,0,2>,rp+<0,0,2>,[RC_MAX_HITS,5,RC_REJECT_TYPES,RC_REJECT_AGENTS|RC_REJECT_LAND,RC_DATA_FLAGS,RC_GET_ROOT_KEY]);
                             integer hits=llList2Integer(rcfind,-1);
                             while(hits--)
                             {
@@ -282,9 +302,19 @@ default
                                 atcap=85;//Because this is a valid source, bump up the default AT cap to 85 instead of 75
                                 list bb=llGetBoundingBox(src);//Get size
                                 vector tsize=llList2Vector(bb,1)-llList2Vector(bb,0);
-                                float tvol=tsize.x*tsize.y*tsize.z;//Get volume
-                                integer mult=(integer)tvol/40;
-                                atcap+=mult*10;//Generate new AT cap. The larger the vehicle the higher the cap before blacklisting triggers.
+                                if(tsize.x>=2&&tsize.y>=2)
+                                {
+                                    integer bonus=0;
+                                    if(tsize.z>tsize.x&&tsize.z>tsize.y)tsize.z=tsize.z*2;//mech boy
+                                    else
+                                    {
+                                        integer tgtmaxhp=llList2Integer(dl,2);
+                                        if(tgtmaxhp<100)bonus=(100-tgtmaxhp)/10;
+                                    }
+                                    float tvol=tsize.x*tsize.y*tsize.z;//Get volume
+                                    integer mult=(integer)tvol/30+bonus;
+                                    atcap+=mult*10;//Generate new AT cap. The larger the vehicle the higher the cap before blacklisting triggers.
+                                }
                             }
                         }
                     }
@@ -301,13 +331,13 @@ default
                         recent=llListReplaceList(recent,[new],rf+3,rf+3);
                         if(new>atcap)
                         {
-                            if(new>atcap*1.25)//If damage being dealt is over the AT CAP by 1.25 trigger blacklisting
+                            if(new>atcap*2)//If damage being dealt is over the AT CAP by 2 trigger blacklisting
                             {
                                 if(tf==-1)tf=llListFindList(totals,[owner]);
                                 integer tdamage=llList2Integer(totals,tf+1);
-                                llOwnerSay("/me :: secondlife:///app/agent/"+(string)owner+"/about has exceeded their AT Cap for "+llKey2Name(src)+" of "+(string)atcap+" with "+(string)new+" total damage! 
+                                llOwnerSay("/me :: secondlife:///app/agent/"+(string)owner+"/about has exceeded their AT Cap * 2 for "+llKey2Name(src)+" of "+(string)atcap+" with "+(string)new+" total damage! 
         This avatar has sourced "+(string)tdamage+" before being blacklisted. Blacklisting and refunding all damage!");
-                                llRegionSayTo(owner,0,"/me :: You have exceeded your AT Cap for "+llKey2Name(src)+" of "+(string)atcap+" with "+(string)new+" total damage.
+                                llRegionSayTo(owner,0,"/me :: You have exceeded your AT Cap * 2 for "+llKey2Name(src)+" of "+(string)atcap+" with "+(string)new+" total damage.
 You avatar has sourced "+(string)tdamage+" before being blacklisted, which has now been refunded. If you believe this is in error, contact secondlife:///app/agent/"+(string)llGetOwner()+"/about .");
                                 blacklist+=(string)owner;
                                 hp+=tdamage;
