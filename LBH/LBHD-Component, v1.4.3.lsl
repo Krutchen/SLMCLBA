@@ -1,5 +1,5 @@
 //MBTLBA was a stupid name
-string ver="DHCv1.4.2";//LBA Version
+string ver="DHCv1.4.3";//LBA Version
 //efx
 integer burning;//burning flag
 integer repair;//repair timer
