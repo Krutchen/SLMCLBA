@@ -1,4 +1,4 @@
-string ver="DHv1.4.1";//LBA Version
+string ver="DHv1.4.2";//LBA Version
 integer mhp=200;//Maximum HP
 integer hp=mhp;//Current HP
 //Positive Numbers Deal Damage
@@ -26,7 +26,8 @@ float collisionmod(vector pos, vector targetPos)
         if(dist<1.0)return middle;//This catches explosions which rezzes AT in the object's root position.
         else
         {
-            float mod=targetPos.z-pos.z;
+            vector fpos=(targetPos-pos)/llGetRot();
+            float mod=fpos.z;
             if(mod>=top_threshold)mod=top;//Top check
             else if(mod<=bottom_threshold)mod=bottom;//Bottom check
             else mod=1.0;//Else reset it to 1.0
