@@ -104,13 +104,17 @@ float transhealth;
 float enginehealth;
 float ammohealth;
 
+key hitby;
+integer ERAr;
+
+integer ERA=7; //Bitwise integer representing which sides of your vehicle have ERA, add up and set this number to the total for 1=front 2=left 4=right 8=rear (4+2+1=7)
+
 ref()
 {
-    llSetObjectDesc("LBA.v.MLBA,"+(string)enginehealth+","+(string)transhealth+","+(string)crewhealth+","+(string)ammohealth);
+    llSetObjectDesc("LBA.v.MLBA,"+(string)llRound(enginehealth)+","+(string)llRound(transhealth)+","+(string)llRound(crewhealth)+","+(string)llRound(ammohealth)+","+(string)ERAr);
     llSetText(
     "ENG: "+(string)(llRound(enginehealth)%90000)+"/"+(string)llRound(enginehealthmax)+" TRA: "+(string)(llRound(transhealth)%90000)+"/"+(string)llRound(transhealthmax)+
     "\nCRW: "+(string)(llRound(crewhealth)%90000)+"/"+(string)llRound(crewhealthmax)+" AMM: "+(string)(llRound(ammohealth)%90000)+"/"+(string)llRound(ammohealthmax),<1,1,1>,1);
-    //I'll clean all of this shit up later
     if(enginehealth<0 || ammohealth<0){
         llLinkParticleSystem(-1,[]);
         llSetText("",<0,0,0>,0);
@@ -197,6 +201,7 @@ default
             transhealth=llList2Float(llCSV2List(d),2);
             crewhealth=llList2Float(llCSV2List(d),3);
             ammohealth=llList2Float(llCSV2List(d),4);
+            ERAr=llList2Integer(llCSV2List(d),5);
         }
         list bb=llGetBoundingBox(llGetKey());
         siz=llList2Vector(bb,1)-llList2Vector(bb,0);
@@ -211,6 +216,7 @@ default
         transhealth=transhealthmax;
         ammohealth=ammohealthmax;
         crewhealth=crewhealthmax;
+        ERAr=ERA;
         for(i=1;i<llGetNumberOfPrims()+1;i++){
             if(llGetLinkName(i)=="enginefx"){enginefx=i;}
             if(llGetLinkName(i)=="enginefx2"){enginefx2=i;}
@@ -234,6 +240,7 @@ default
         integer dmg = (integer)llList2String(l,1);
         if(target == (string)llGetKey())
         {
+            hitby=llGetOwnerKey(k);
             if(dmg>0){
                 llResetTime();
                 key rzr=llList2Key(llGetObjectDetails(k,[OBJECT_REZZER_KEY]),0);
@@ -251,12 +258,40 @@ default
                 
                 lochitN=<lochit.x/siz.x,lochit.y/siz.y,lochit.z/siz.z>;
                 if(llFabs(lochitN.x)>llFabs(lochitN.y)&&llFabs(lochitN.x)>llFabs(lochitN.z)){
-                    if(lochitN.x>0){hn=<1,0,0>;armour=frontarmour;hitface="F";lochit.x=siz.x;}else{hn=<-1,0,0>;armour=reararmour;hitface="B";lochit.x=-siz.x;}
+                    if(lochitN.x>0){
+                        hn=<1,0,0>;armour=frontarmour;hitface="front";lochit.x=siz.x;
+                        if(ERAr&1&&dmg>9){
+                            if(llSubStringIndex(s,"AP")==-1 && llSubStringIndex(llToLower(s),"piercing")==-1 && llSubStringIndex(llToLower(s),"sabot")==-1){armour+=.3;}
+                            ERAr-=1;mesg="Detonated front ERA\n";llTriggerSound("cb31159c-9d1c-6306-908b-09979f6a0e61",1);
+                        }
+                    }else{
+                        hn=<-1,0,0>;armour=reararmour;hitface="rear";lochit.x=-siz.x;
+                        if(ERAr&8&&dmg>9){
+                            if(llSubStringIndex(s,"AP")==-1 && llSubStringIndex(llToLower(s),"piercing")==-1 && llSubStringIndex(llToLower(s),"sabot")==-1){armour+=.3;}
+                            ERAr-=8;mesg="Detonated rear ERA\n";llTriggerSound("cb31159c-9d1c-6306-908b-09979f6a0e61",1);
+                        }
+                    }
                 }else if(llFabs(lochitN.y)>llFabs(lochitN.z)){
                     armour=sidearmour;
-                    if(lochitN.y>0){hn=<0,1,0>;hitface="L";lochit.y=siz.y;}else{hn=<0,-1,0>;hitface="R";lochit.y=-siz.y;}
+                    if(lochitN.y>0){
+                        hn=<0,1,0>;hitface="left";lochit.y=siz.y;
+                        if(ERAr&2&&dmg>9){
+                            if(llSubStringIndex(s,"AP")==-1 && llSubStringIndex(llToLower(s),"piercing")==-1 && llSubStringIndex(llToLower(s),"sabot")==-1){armour+=.3;}
+                            ERAr-=2;mesg="Detonated left ERA\n";llTriggerSound("cb31159c-9d1c-6306-908b-09979f6a0e61",1);
+                        }
+                    }else{
+                        hn=<0,-1,0>;hitface="right";lochit.y=-siz.y;
+                        if(ERAr&4&&dmg>9){
+                            if(llSubStringIndex(s,"AP")==-1 && llSubStringIndex(llToLower(s),"piercing")==-1 && llSubStringIndex(llToLower(s),"sabot")==-1){armour+=.3;}
+                            ERAr-=4;mesg="Detonated right ERA\n";llTriggerSound("cb31159c-9d1c-6306-908b-09979f6a0e61",1);
+                        }
+                    }
                 }else{
-                    if(lochitN.z>0){hn=<0,0,1>;armour=toparmour;hitface="T";lochit.z=siz.z;}else{hn=<0,0,-1>;armour=bottomarmour;hitface="U";lochit.z=-siz.z;}
+                    if(lochitN.z>0){
+                        hn=<0,0,1>;armour=toparmour;hitface="top";lochit.z=siz.z;
+                    }else{
+                        hn=<0,0,-1>;armour=bottomarmour;hitface="bottom";lochit.z=-siz.z;
+                    }
                 }
                 
                 if(rothit!=ZERO_ROTATION){
@@ -296,14 +331,14 @@ default
                     }
                     
                     //llOwnerSay("Succ Proc time: "+(string)llGetTime()); //debugging message, tell me how long we took to process this damage
-                    llRegionSayTo(llGetOwnerKey(k),0,mesg);
-                    llWhisper(0,"damage recieved:\n"+mesg);
+                    llRegionSayTo(hitby,0,mesg);
+                    llWhisper(0,"damage recieved from "+llKey2Name(hitby)+" via "+s+":\n"+mesg);
                     //llRegionSayTo(sitbase,-255,"dmg,"+(string)lochitN+",0"); //Uncomment to send the relative hit position to the sitbase, for damage decals
                     llTriggerSound(llList2String(["32036145-8205-d4a4-8518-3d7f9f5de0d5","b0820b49-3ea6-b7b7-5a27-cfaff169427c","3977dd91-ad56-6b8e-e5cb-75fb817aaba1"],llFloor(llFrand(3))),1);
                 }else{
                     mesg+=(string)dmg+" basedmg: Didn't penetrate "+hitface+" side ("+(string)llRound(dmg*12)+"mm*"+(string)llRound(anglehitat)+"°="+(string)llRound(pen*1000)+"mm<"+(string)llRound(armour*1000)+"mm)";
-                    llRegionSayTo(llGetOwnerKey(k),0,"\n"+mesg);
-                    //llWhisper(0,"damage recieved:\n"+mesg);
+                    llRegionSayTo(hitby,0,"\n"+mesg);
+                    //llWhisper(0,"damage recieved from "+llKey2Name(hitby)+" via "+s+":\n"+mesg);
                     if(dmg>4){
                         //llRegionSayTo(sitbase,-255,"dmg,"+(string)lochitN+",1"); //Uncomment to send the relative hit position to the sitbase, for damage decals
                         llTriggerSound(llList2String(["513bf948-b2b8-fe36-0064-fc5a7f58fd52","60bda7e2-56e2-7031-6a8a-a945ee1e1c6b","72711778-7eb3-4608-3d86-9bc1aee2f54a"],llFloor(llFrand(3))),1);
@@ -318,7 +353,8 @@ default
                 if(enginehealth>enginehealthmax){enginehealth=enginehealthmax;}
                 if(transhealth<0){transhealth=0;}
                 transhealth-=dmg/3;
-                if(transhealth>transhealthmax){transhealth=transhealthmax;llMessageLinked(LINK_THIS,0,"mobile","");} //Mobilize on the transmission being fully repaired
+                if(transhealth>transhealthmax){transhealth=transhealthmax;llMessageLinked(LINK_THIS,0,"mobile","");}
+                if(ammohealth>=ammohealthmax && enginehealth>=enginehealthmax && transhealth>=transhealthmax){ERAr=ERA;}
             }
             ref();
         }
@@ -343,10 +379,10 @@ default
         }else{
             llLinkParticleSystem(ammofx,[]);
         }
-        llSetObjectDesc("LBA.v.,"+(string)enginehealth+","+(string)transhealth+","+(string)crewhealth+","+(string)ammohealth);
-        llSetText(
-        "E: "+(string)(llRound(enginehealth)%90000)+"/"+(string)llRound(enginehealthmax)+" T: "+(string)(llRound(transhealth)%90000)+"/"+(string)llRound(transhealthmax)+
-        "\nC: "+(string)(llRound(crewhealth)%90000)+"/"+(string)llRound(crewhealthmax)+" A: "+(string)(llRound(ammohealth)%90000)+"/"+(string)llRound(ammohealthmax),<1,1,1>,1);
+        llSetObjectDesc("LBA.v.,"+(string)llRound(enginehealth)+","+(string)llRound(transhealth)+","+(string)llRound(crewhealth)+","+(string)llRound(ammohealth)+","+(string)ERAr);
+                llSetText(
+        "ENG: "+(string)(llRound(enginehealth)%90000)+"/"+(string)llRound(enginehealthmax)+" TRA: "+(string)(llRound(transhealth)%90000)+"/"+(string)llRound(transhealthmax)+
+        "\nCRW: "+(string)(llRound(crewhealth)%90000)+"/"+(string)llRound(crewhealthmax)+" AMM: "+(string)(llRound(ammohealth)%90000)+"/"+(string)llRound(ammohealthmax),<1,1,1>,1);
         if(enginehealth>enginehealthmax*.5&&ammohealth>ammohealthmax*.2){
             llSetTimerEvent(0);llLinkParticleSystem(-1,[]);
         }else if(enginehealth<=0 || ammohealth<=0){
