@@ -108,8 +108,8 @@ ref()
 {
     llSetObjectDesc("LBA.v.MLBA,"+(string)enginehealth+","+(string)transhealth+","+(string)crewhealth+","+(string)ammohealth);
     llSetText(
-    "E: "+(string)(llRound(enginehealth)%90000)+"/"+(string)llRound(enginehealthmax)+" T: "+(string)(llRound(transhealth)%90000)+"/"+(string)llRound(transhealthmax)+
-    "\nC: "+(string)(llRound(crewhealth)%90000)+"/"+(string)llRound(crewhealthmax)+" A: "+(string)(llRound(ammohealth)%90000)+"/"+(string)llRound(ammohealthmax),<1,1,1>,1);
+    "ENG: "+(string)(llRound(enginehealth)%90000)+"/"+(string)llRound(enginehealthmax)+" TRA: "+(string)(llRound(transhealth)%90000)+"/"+(string)llRound(transhealthmax)+
+    "\nCRW: "+(string)(llRound(crewhealth)%90000)+"/"+(string)llRound(crewhealthmax)+" AMM: "+(string)(llRound(ammohealth)%90000)+"/"+(string)llRound(ammohealthmax),<1,1,1>,1);
     //I'll clean all of this shit up later
     if(enginehealth<0 || ammohealth<0){
         llLinkParticleSystem(-1,[]);
