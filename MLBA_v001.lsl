@@ -106,7 +106,7 @@ float ammohealth;
 
 ref()
 {
-    llSetObjectDesc("LBA.v.,"+(string)enginehealth+","+(string)transhealth+","+(string)crewhealth+","+(string)ammohealth);
+    llSetObjectDesc("LBA.v.MLBA,"+(string)enginehealth+","+(string)transhealth+","+(string)crewhealth+","+(string)ammohealth);
     llSetText(
     "E: "+(string)(llRound(enginehealth)%90000)+"/"+(string)llRound(enginehealthmax)+" T: "+(string)(llRound(transhealth)%90000)+"/"+(string)llRound(transhealthmax)+
     "\nC: "+(string)(llRound(crewhealth)%90000)+"/"+(string)llRound(crewhealthmax)+" A: "+(string)(llRound(ammohealth)%90000)+"/"+(string)llRound(ammohealthmax),<1,1,1>,1);
@@ -267,7 +267,7 @@ default
                 }
                 
                 if(pen>0){
-                    mesg="Penetrated "+hitface+"side ("+(string)llRound((pen+armour)*1000)+"/"+(string)llRound(armour*1000)+"mm)="+(string)dmg+"\n";
+                    mesg+=(string)dmg+" basedmg: Penetrated "+hitface+" side ("+(string)llRound(dmg*12)+"mm*"+(string)llRound(anglehitat)+"°="+(string)llRound(pen*1000)+"mm>"+(string)llRound(armour*1000)+"mm)";
                     
                     //mofs=llVecDist(<1,0,0>*rothit,llVecNorm(enginepos-lochit))*1.5;
                     mofs=llVecDist(lochit+<1,0,0>*rothit,enginepos)*.2;
@@ -301,7 +301,7 @@ default
                     //llRegionSayTo(sitbase,-255,"dmg,"+(string)lochitN+",0"); //Uncomment to send the relative hit position to the sitbase, for damage decals
                     llTriggerSound(llList2String(["32036145-8205-d4a4-8518-3d7f9f5de0d5","b0820b49-3ea6-b7b7-5a27-cfaff169427c","3977dd91-ad56-6b8e-e5cb-75fb817aaba1"],llFloor(llFrand(3))),1);
                 }else{
-                    mesg="No penetration on "+hitface+"side ("+(string)llRound((pen+armour)*1000)+"/"+(string)llRound(armour*1000)+"mm)";
+                    mesg+=(string)dmg+" basedmg: Didn't penetrate "+hitface+" side ("+(string)llRound(dmg*12)+"mm*"+(string)llRound(anglehitat)+"°="+(string)llRound(pen*1000)+"mm<"+(string)llRound(armour*1000)+"mm)";
                     llRegionSayTo(llGetOwnerKey(k),0,"\n"+mesg);
                     //llWhisper(0,"damage recieved:\n"+mesg);
                     if(dmg>4){
