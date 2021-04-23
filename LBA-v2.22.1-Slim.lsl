@@ -10,7 +10,7 @@ integer die = TRUE;     // Does this script kill the object -OR- sends a message
 
 updateHP()
 {
-    if(hp < 1)
+    if(hp <= 0)
     {
         if(buffer != []) llOwnerSay(llDumpList2String(buffer, " | "));
         llSleep(0.1);
