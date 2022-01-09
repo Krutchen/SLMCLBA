@@ -35,8 +35,8 @@ handlehp()//Updates your HP text. The only thing you should really dick with is 
         --t;
     }
     display+="]";
-    string info="LBA.v.L."+llGetSubString((string)rev,0,3)+","+(string)hp+","+(string)maxhp+","+(string)atcap+","+(string)trigger;
-    llSetLinkPrimitiveParamsFast(link,[PRIM_TEXT,"[LBA LIGHT] \n ["+(string)((integer)hp)+"/"+(string)((integer)maxhp)+"] \n "+display,<1.-(float)hp/maxhp,(float)hp/maxhp,0.>,1,PRIM_LINK_TARGET,LINK_THIS,PRIM_DESC,info]);
+    string info="LBA.v."+llGetSubString((string)rev,0,3)+","+(string)hp+","+(string)maxhp+","+(string)atcap+","+(string)trigger;
+    llSetLinkPrimitiveParamsFast(link,[PRIM_TEXT,"[LBA] \n ["+(string)((integer)hp)+"/"+(string)((integer)maxhp)+"] \n "+display,<1.-(float)hp/maxhp,(float)hp/maxhp,0.>,1,PRIM_LINK_TARGET,LINK_THIS,PRIM_DESC,info]);
     if(hp==0)die();
 }
 open()
