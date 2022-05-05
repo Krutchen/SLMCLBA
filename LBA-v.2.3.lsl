@@ -115,6 +115,8 @@ default
                 if(no==1&&antigrief==0)return;
                 key owner=llList2Key(ownerinfo,0);//Gets the owner key from Ownerinfo
                 integer dmg=(integer)llList2Integer(mes,-1);//This is the damage, fuck you.
+                if(dmg>300)dmg=300;//Basic AT cap, the 4s check should be better for catching spam attempts, allows for heavier slower hits, but we still don't want 1000 AT being done to people.
+                if(dmg<-20)dmg=-20;//Flat limit on repairs to 20 per event. This should cockblock all overflow attempts as well. If you ever need more than this much per event you're being a dipshit.
                 key src=id;
                 integer sit=-1;
                 key osrc=src;
@@ -257,7 +259,6 @@ default
                         }
                     }
                 }
-                if (dmg<-20)dmg=-20;//Flat limit on repairs to 20 per event. This should cockblock all overflow attempts as well. If you ever need more than this much per event you're being a faggot.
                 string srcn=llKey2Name(src);
                 integer pf=llListFindList(proc,[owner,srcn,n]);
                 if(pf==-1)proc+=[owner,srcn,n,dmg,1,sit];
