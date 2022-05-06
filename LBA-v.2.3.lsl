@@ -141,88 +141,92 @@ default
                         if(llVecDist(llGetPos(),llList2Vector(ownerinfo,5))<=15)sit=3;
                         if(llGetAgentInfo(owner)&AGENT_ON_OBJECT)sit=1;
                     }
-                    if(llGetSubString(desc,0,5)=="LBA.v."&&llGetListLength(dl)>=3&&llList2Integer(dl,2)>0&&(integer)((string)llGetObjectDetails(id,[OBJECT_RUNNING_SCRIPT_COUNT]))>1)
+                    else
                     {
-                        src=id;//Is this a delpoyable?
-                        sit=2;
-                    }
-                    else 
-                    {
-                        if(llGetSubString(desc,0,5)=="LBA.v.")//Kind of messy but this checks 'is direct damager a landmine'. Check if it has a LBA flag
+                        if(llGetSubString(desc,0,5)=="LBA.v."&&llGetListLength(dl)>=3&&llList2Integer(dl,2)>0&&(integer)((string)llGetObjectDetails(id,[OBJECT_RUNNING_SCRIPT_COUNT]))>1)
                         {
-                            string tod=llList2String(llCSV2List(desc),1);//Get the part where "time of day" would be
-                            if(llGetSubString(tod,0,1)=="t:"&&((float)llGetSubString(tod,2,-1))!=0)//Does it have t:####?
-                            {
-                                list bb=llGetBoundingBox(src);//Get size, is it under 1x1x1 like a LANDMINE?
-                                vector tsize=llList2Vector(bb,1)-llList2Vector(bb,0);
-                                if(tsize.x<1&&tsize.y<1&&tsize.z<1)
-                                {
-                                    tries=0;
-                                    n+=" "+llGetSubString(tod,2,-1);
-                                    desc="";
-                                }
-                            }
+                            src=id;//Is this a delpoyable?
+                            sit=2;
                         }
-                        if(tries)
+                        else 
                         {
-                            @srcfind;//Jumps back here for iterations if the check didn't get a valid source
-                            key src2=llList2Key(ownerinfo,3);//Src2 is the last rezzer key 
-                            integer shortcut=llListFindList(recent,[src2]);
-                            if(shortcut==-1)
+                            if(llGetSubString(desc,0,5)=="LBA.v.")//Kind of messy but this checks 'is direct damager a landmine'. Check if it has a LBA flag
                             {
-                                ownerinfo=llGetObjectDetails(src2,[OBJECT_DESC,OBJECT_ATTACHED_POINT,OBJECT_POS,OBJECT_REZZER_KEY,OBJECT_RUNNING_SCRIPT_COUNT,OBJECT_SIT_COUNT,OBJECT_NAME]);
-                                desc=llList2String(ownerinfo,0);
-                                if(llGetSubString(desc,0,5)=="LBA.v.")//Kind of messy but this checks 'is direct damager a landmine'. Check if it has a LBA flag
+                                string tod=llList2String(llCSV2List(desc),1);//Get the part where "time of day" would be
+                                if(llGetSubString(tod,0,1)=="t:"&&((float)llGetSubString(tod,2,-1))!=0)//Does it have t:####?
                                 {
-                                    string tod=llList2String(llCSV2List(desc),1);//Get the part where "time of day" would be
-                                    if(llGetSubString(tod,0,1)=="t:"&&((float)llGetSubString(tod,2,-1))!=0)//Does it have t:####?
+                                    list bb=llGetBoundingBox(src);//Get size, is it under 1x1x1 like a LANDMINE?
+                                    vector tsize=llList2Vector(bb,1)-llList2Vector(bb,0);
+                                    if(tsize.x<1&&tsize.y<1&&tsize.z<1)
                                     {
-                                        list bb=llGetBoundingBox(src2);//Get size, is it under 1x1x1 like a LANDMINE?
-                                        vector tsize=llList2Vector(bb,1)-llList2Vector(bb,0);
-                                        if(tsize.x<1&&tsize.y<1&&tsize.z<1)
-                                        {
-                                            src=src2;
-                                            n=llList2String(ownerinfo,6)+" "+llGetSubString(tod,2,-1);
-                                            desc="";
-                                        }
-                                    }
-                                }
-                                if(src!=src2)
-                                {
-                                    att=llList2Integer(ownerinfo,1);//Is the rezzer attached? If so that's your source
-                                    if(!att)//Otherwise check their info
-                                    {
-                                        //Does this have a valid LBA description and more than one script? Then it's a deployable and you can decide that's your source.
-                                        list dl=llCSV2List(desc);
-                                        if(llGetSubString(desc,0,5)=="LBA.v."&&llGetListLength(dl)>=3&&llList2Integer(dl,2)>0&&llList2Integer(ownerinfo,4)>1)
-                                        {
-                                            src=src2;
-                                            sit=2;
-                                        }
-                                        else desc="";
-                                    }
-                                    else 
-                                    {
-                                        src=src2;
+                                        tries=0;
+                                        n+=" "+llGetSubString(tod,2,-1);
                                         desc="";
                                     }
-                                    if(llList2Vector(ownerinfo,2)==ZERO_VECTOR)tries=0;
-                                    if(llList2Integer(ownerinfo,5)>0)
-                                    {
-                                        if(sit!=2)sit=1;
-                                        src=src2;
-                                        tries=0;
-                                    }
-                                    if(src!=src2&&tries-->0)jump srcfind;
                                 }
                             }
-                            else src=llList2Key(recent,shortcut);
+                            if(tries)
+                            {
+                                @srcfind;//Jumps back here for iterations if the check didn't get a valid source
+                                key src2=llList2Key(ownerinfo,3);//Src2 is the last rezzer key 
+                                integer shortcut=llListFindList(recent,[src2]);
+                                if(shortcut==-1)
+                                {
+                                    ownerinfo=llGetObjectDetails(src2,[OBJECT_DESC,OBJECT_ATTACHED_POINT,OBJECT_POS,OBJECT_REZZER_KEY,OBJECT_RUNNING_SCRIPT_COUNT,OBJECT_SIT_COUNT,OBJECT_NAME]);
+                                    desc=llList2String(ownerinfo,0);
+                                    if(llGetSubString(desc,0,5)=="LBA.v.")//Kind of messy but this checks 'is direct damager a landmine'. Check if it has a LBA flag
+                                    {
+                                        string tod=llList2String(llCSV2List(desc),1);//Get the part where "time of day" would be
+                                        if(llGetSubString(tod,0,1)=="t:"&&((float)llGetSubString(tod,2,-1))!=0)//Does it have t:####?
+                                        {
+                                            list bb=llGetBoundingBox(src2);//Get size, is it under 1x1x1 like a LANDMINE?
+                                            vector tsize=llList2Vector(bb,1)-llList2Vector(bb,0);
+                                            if(tsize.x<1&&tsize.y<1&&tsize.z<1)
+                                            {
+                                                src=src2;
+                                                n=llList2String(ownerinfo,6)+" "+llGetSubString(tod,2,-1);
+                                                desc="";
+                                            }
+                                        }
+                                    }
+                                    if(src!=src2)
+                                    {
+                                        att=llList2Integer(ownerinfo,1);//Is the rezzer attached? If so that's your source
+                                        if(!att)//Otherwise check their info
+                                        {
+                                            //Does this have a valid LBA description and more than one script? Then it's a deployable and you can decide that's your source.
+                                            list dl=llCSV2List(desc);
+                                            if(llGetSubString(desc,0,5)=="LBA.v."&&llGetListLength(dl)>=3&&llList2Integer(dl,2)>0&&llList2Integer(ownerinfo,4)>1)
+                                            {
+                                                src=src2;
+                                                sit=2;
+                                            }
+                                            else desc="";
+                                        }
+                                        else 
+                                        {
+                                            src=src2;
+                                            desc="";
+                                        }
+                                        if(llList2Vector(ownerinfo,2)==ZERO_VECTOR)tries=0;
+                                        if(llList2Integer(ownerinfo,5)>0)
+                                        {
+                                            if(sit!=2)sit=1;
+                                            src=src2;
+                                            tries=0;
+                                        }
+                                        if(src!=src2&&tries-->0)jump srcfind;
+                                    }
+                                }
+                                else src=llList2Key(recent,shortcut);
+                            }
                         }
                     }
                 }
+                string srcn=llKey2Name(src);
                 integer tf=llListFindList(totals,[owner]);
                 if(tf==-1)totals+=[owner,dmg];
-                else totals=llListReplaceList(totals,[llList2Integer(totals,1)+dmg],tf+1,tf+1);
+                else totals=llListReplaceList(totals,[llList2Integer(totals,tf+1)+dmg],tf+1,tf+1);
                 integer rf=llListFindList(recent,[owner,src]);
                 if(rf==-1)recent+=[owner,src,n,dmg,llGetTime(),sit];
                 else 
@@ -259,7 +263,6 @@ default
                         }
                     }
                 }
-                string srcn=llKey2Name(src);
                 integer pf=llListFindList(proc,[owner,srcn,n]);
                 if(pf==-1)proc+=[owner,srcn,n,dmg,1,sit];
                 else
@@ -281,7 +284,7 @@ default
         events=0;
         if(proc!=[])
         {
-            integer buffers=(llGetListLength(proc)+1)/5;
+            integer buffers=(llGetListLength(proc)+1)/6;
             while(buffers)
             {
                 key owner=llList2Key(proc,0);
@@ -323,7 +326,7 @@ default
             while(i<buffers)
             {
                 integer plus=i*6;
-                float time=llList2Float(recent,plus+5);
+                float time=llList2Float(recent,plus+4);
                 if(llGetTime()-time>=4)recent=llListReplaceList(recent,[],0,5);
                 ++i;
             }
