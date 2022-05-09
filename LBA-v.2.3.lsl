@@ -237,11 +237,12 @@ default
                     {
                         integer val=150;
                         integer nsit=llList2Integer(recent,rf+5);
-                        if(sit!=nsit)
+                        if(sit!=nsit&&nsit==0)
                         {
                             nsit=sit;
                             recent=llListReplaceList(recent,[sit],rf+5,rf+5);
                         }
+                        sit=nsit;
                         if(nsit>0)val=300;
                         if(new>val)
                         {
