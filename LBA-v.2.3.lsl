@@ -130,6 +130,7 @@ default
     llOwnerSay("/me :: secondlife:///app/agent/"+(string)owner+"/about is being blacklisted for Keygen projectile usage");
     llRegionSayTo(owner,0,"/me :: You are being blacklisted for Keygen projectile usage");
                         blacklist+=(string)owner;
+                        return;
                     }
                     integer att=llList2Integer(ownerinfo,2);
                     sit=0;//Sit 0 for standing, sit 1 for seated av, sit 2 for deployable, sit 3 for close range weapon (attached & within 15m)
