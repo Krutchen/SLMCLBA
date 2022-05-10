@@ -1,49 +1,31 @@
-integer hp;             // Current hp
-integer hpmax = 25;     // My default HP value, LBA Slim is great for values less than 50
-integer cap = 0;        // Maximum damage taken per hit, leave this at 0 if you dont want to use the cap
-integer link = 0;       // Text display link number
-integer hex;            // My channel
-key me;                 // My key
-list buffer;
-integer die = TRUE;     // Does this script kill the object -OR- sends a message to a core script
-                        // for plug and play LBA
-
-updateHP()
+integer hp;             
+integer maxhp = 100;    
+integer cap = 0;        
+integer link = 0;       
+integer hex;            
+key me;    
+float rev=2.3;//Current revision number, for just making sure people know you're on version X Y Z.             
+handlehp()//Updates your HP text. The only thing you should really dick with is the text display.
 {
-    if(hp <= 0)
-    {
-        if(buffer != []) llOwnerSay(llDumpList2String(buffer, " | "));
-        llSleep(0.1);
-        if(!die) llMessageLinked(LINK_THIS, 1, "dead", NULL_KEY);
-        else llDie();
-    }
-    else
-    {
-        llSetLinkPrimitiveParamsFast(link,[
-        PRIM_TEXT,"[LBA-Slim]\n[" + (string)(hp) + "/" +(string)(hpmax) + "]",<0.0,1.0,0.0>,1.0,
-        PRIM_LINK_TARGET, LINK_THIS,
-        PRIM_DESC,"LBA.v.L.2.22," + (string)hp + "," + (string)hpmax + "," + (string)cap
-        ]);
-    }
+    string info="LBA.v.L."+llGetSubString((string)rev,0,3)+","+(string)hp+","+(string)maxhp;
+    llSetLinkPrimitiveParamsFast(link,[PRIM_TEXT,"[LBA Slim] \n ["+(string)((integer)hp)+"/"+(string)((integer)maxhp)+"] \n ",<1.-(float)hp/maxhp,(float)hp/maxhp,0.>,1,PRIM_LINK_TARGET,LINK_THIS,PRIM_DESC,info]);
+    if(hp==0)llDie();
 }
-
 init(integer s)
 {
-    if(s <= hpmax && s > 0) hp = s;
-    else hp = hpmax;
-    if(!cap) cap = hpmax;
+    if(s <= maxhp && s > 0) hp = s;
+    else hp = maxhp;
+    if(!cap) cap = maxhp;
     me = llGetKey();
     hex = (integer)("0x" + llGetSubString(llMD5String((string)me,0), 0, 3));
     llListen(hex, "","","");
-    updateHP();
+    handlehp();
 }
-
 default
 {
     state_entry()
     {
-        llSetLinkPrimitiveParams(LINK_SET, [PRIM_TEXT,"", <1,1,1>,1]);
-        init(hpmax);
+        init(0);
     }
     on_rez(integer sp)
     {
@@ -53,45 +35,28 @@ default
     {
         while(n--)
         {
-            if(llVecMag(llDetectedVel(n)) > 25 && llDetectedType(n) != 3) --hp;
+            if(llVecMag(llDetectedVel(n)) > 25 && llDetectedType(n) != 3)--hp;
         }
-        updateHP();
+        handlehp();
     }
-    listen(integer c, string n, key id, string m)
+    listen(integer i, string n, key k, string m)
     {
         list l = llParseString2List(m,[","],[]);
         string target = llList2String(l,0);
         integer dmg = (integer)llList2String(l,1);
-        if (cap) // use cap to limit repairs
-        {
-            if (dmg < -cap) dmg = -cap;
-        }
-        else if (dmg < -hpmax) dmg = -hpmax; // use maxhp to limit repairs
-        if(c == hex)
+        if(i == hex)
         {
             if(target == (string)me)
             {
-                string name = llKey2Name(llGetOwnerKey(id));
-                if(dmg > cap) hp -= cap;
-                else hp -= dmg;
-                if(hp > hpmax) hp = hpmax;
-                integer index = llListFindList(buffer, [name]);
-                if(index < 0) buffer += [name,dmg];
-                else
-                {
-                    dmg = llList2Integer(buffer,index+1) + dmg;
-                    buffer = llListReplaceList(buffer, [name,dmg], index, index+1);
-                }
-                updateHP();
-                llSetTimerEvent(2);
+                if((key)n)return;
+                if ((string)((float)n)==n||(string)((integer)n)==n)return;
+                if(dmg<-15)dmg=-15;//Cap to -15, stops overflow attempts.
+                //llOwnerSay(llKey2Name(llGetOwnerKey(k)) +" : "+ s +" : "+(string)dmg);
+                //if(dmg > cap) dmg = cap;
+                hp -= dmg;
+                if(hp > maxhp) hp = maxhp;
+                handlehp();
             }
         }       
-    }
-    
-    timer()
-    {
-        llOwnerSay(llDumpList2String(buffer, " | "));
-        buffer = [];
-        llSetTimerEvent(0);
-    }
+    } 
 }
