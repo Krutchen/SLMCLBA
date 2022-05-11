@@ -206,6 +206,7 @@ default
                                         }
                                         else 
                                         {
+                                            if(llGetAgentInfo(owner)&AGENT_ON_OBJECT)sit=1;
                                             src=src2;
                                             desc="";
                                         }
