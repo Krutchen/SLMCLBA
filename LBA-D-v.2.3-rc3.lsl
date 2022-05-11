@@ -169,7 +169,7 @@ default
                 if(antigrief==1)//If you don't want to run this, either delete this section or set antigrief to 0
                 {
                     key creator=llList2Key(ownerinfo,1);//Gets the creator key from Ownerinfo
-                    if(llListFindList(blacklist,[(string)owner])!=-1&&llListFindList(blacklist,[(string)creator])!=-1)return;
+                    if(llListFindList(blacklist,[(string)owner])!=-1||llListFindList(blacklist,[(string)creator])!=-1)return;
                     if(no==1)
                     {
                         key owner=llList2Key(ownerinfo,0);
