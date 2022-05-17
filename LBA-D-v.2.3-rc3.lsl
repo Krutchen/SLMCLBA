@@ -13,10 +13,10 @@ die()
     handlehp();
 }
 float frontmult=0.5;
-float rearmult=1.7;
+float rearmult=2.0;
 float sidemult=1.0;
-float topmult=0.7;
-float bottommult=2;
+float topmult=1.5;
+float bottommult=3;
 ///DONT BE STUPID WITH YOUR FUCKIN MULTIPLIERS OR ILL BANG YOUR DAD.
 //Directional Processor
 float top_threshold=1.25;//How far up the Z axis should the source be to registered a top. (Positive Number)
@@ -332,7 +332,7 @@ default
                     }
                     float mod=getmod(mypos,pos);
                     if(mod>2)mod=2;
-                    dmgmult=llRound(dmg*mod);
+                    dmgmult=(integer)(dmg*mod);
                     //llOwnerSay((string)dmg+" / " +(string)dmgmult);
                     n+=" | "+(string)mod+" Mult "+mtxt+" |";
                 }
@@ -348,7 +348,7 @@ default
                 if(events==1)llSetTimerEvent(1*llGetRegionTimeDilation());//On the first event, the processing countdown/timer gets started.
                 hp-=dmgmult;
                 if(hp>=maxhp)hp=maxhp;
-                handlehp();    
+                handlehp();
             }
         }
     }
