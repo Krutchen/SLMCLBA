@@ -128,7 +128,8 @@ default
                         {
                             if(llGetSubString(desc,0,5)=="LBA.v."&&(integer)((string)llGetObjectDetails(id,[OBJECT_TOTAL_INVENTORY_COUNT]))>(integer)((string)llGetObjectDetails(id,[OBJECT_TOTAL_SCRIPT_COUNT])))//Kind of messy but this checks 'is direct damager a landmine'. Check if it has a LBA flag
                             {
-                                list bb=llGetBoundingBox(src);//Get size, is it under 1x1x1 like a LANDMINE?
+                                list bb=llGetBoundingBox
+                                );//Get size, is it under 1x1x1 like a LANDMINE?
                                 vector tsize=llList2Vector(bb,1)-llList2Vector(bb,0);
                                 if(tsize.x<1&&tsize.y<1&&tsize.z<1)
                                 {
@@ -160,7 +161,7 @@ default
                                     desc=llList2String(ownerinfo,0);
                                     if(llGetSubString(desc,0,5)=="LBA.v."&&(integer)((string)llGetObjectDetails(src2,[OBJECT_TOTAL_INVENTORY_COUNT]))>(integer)((string)llGetObjectDetails(src2,[OBJECT_TOTAL_SCRIPT_COUNT])))//Kind of messy but this checks 'is direct damager a landmine'. Check if it has a LBA flag
                                     {
-                                        list bb=llGetBoundingBox(src);//Get size, is it under 1x1x1 like a LANDMINE?
+                                        list bb=llGetBoundingBox(src2);//Get size, is it under 1x1x1 like a LANDMINE?
                                         vector tsize=llList2Vector(bb,1)-llList2Vector(bb,0);
                                         if(tsize.x<1&&tsize.y<1&&tsize.z<1)
                                         {
