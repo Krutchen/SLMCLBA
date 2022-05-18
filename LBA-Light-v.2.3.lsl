@@ -39,34 +39,9 @@ list totals=[];//The combined damage from munitions, don't touch me either you f
 list blacklist=[];//List of keys that are a bunch of cock monglers, don't touch me, for one, and also this will be overwritten on blacklist communication.
 integer lh;//Don't touch me
 integer events=0;//How many events are happening in your processing event. 
-vector min;
-vector max;
-//Bounding box values for checking against raycast weaponry.
 open()
 {
     llSetLinkPrimitiveParamsFast(-1,[PRIM_TEXT,"",<1,1,1>,1]);
-    list bb=llGetBoundingBox(llGetKey());
-    min=llList2Vector(bb,0)-<2,2,2>;
-    max=llList2Vector(bb,1)+<2,2,2>;
-    float t;//Temp float for correcting janky hitbox stuff
-    if(min.x>max.x)
-    {
-        t=min.x;
-        min.x=max.x;
-        max.x=t;
-    }
-    if(min.y>max.y)
-    {
-        t=min.z;
-        min.z=max.z;
-        max.z=t;
-    }
-    if(min.z>max.z)
-    {
-        t=min.z;
-        min.z=max.z;
-        max.z=t;
-    }
     integer hex=(integer)("0x" + llGetSubString(llMD5String((string)myKey,0), 0, 3));//My key hex
     lh=llListen(hex,"","","");
 }
@@ -99,6 +74,7 @@ default
             handlehp();
         }
     }
+
     listen(integer c, string n, key id, string m)
     {
         if(hp<=0)return;
@@ -169,11 +145,13 @@ default
                             if(tries)
                             {
                                 @srcfind;//Jumps back here for iterations if the check didn't get a valid source
-                                key src2=llList2Key(ownerinfo,3);//Src2 is the last rezzer key 
+                                key src2=llList2Key(ownerinfo,3);//Src2 is the last rezzer key
                                 integer shortcut=llListFindList(recent,[src2]);
                                 if(shortcut==-1)
                                 {
-                                    ownerinfo=llGetObjectDetails(src2,[OBJECT_DESC,OBJECT_ATTACHED_POINT,OBJECT_POS,OBJECT_REZZER_KEY,OBJECT_RUNNING_SCRIPT_COUNT,OBJECT_SIT_COUNT,OBJECT_NAME]);
+                                    ownerinfo=llGetObjectDetails(src2,[OBJECT_DESC,OBJECT_ATTACHED_POINT,OBJECT_POS,OBJECT_REZZER_KEY,OBJECT_RUNNING_SCRIPT_COUNT,OBJECT_SIT_COUNT,OBJECT_ROOT]);
+                                    if(llList2Key(ownerinfo,6)!=src2)src2=llList2Key(ownerinfo,6);
+                                    if(llList2Vector(ownerinfo,2)==ZERO_VECTOR)src=src2;
                                     desc=llList2String(ownerinfo,0);
                                     if(llGetSubString(desc,0,5)=="LBA.v.")//Kind of messy but this checks 'is direct damager a landmine'. Check if it has a LBA flag
                                     {
