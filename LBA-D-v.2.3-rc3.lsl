@@ -214,11 +214,13 @@ default
                             if(tries)
                             {
                                 @srcfind;//Jumps back here for iterations if the check didn't get a valid source
-                                key src2=rez;//Src2 is the last rezzer key 
+                                key src2=llList2Key(ownerinfo,3);//Src2 is the last rezzer key 
                                 integer shortcut=llListFindList(recent,[src2]);
                                 if(shortcut==-1)
                                 {
-                                    ownerinfo=llGetObjectDetails(src2,[OBJECT_DESC,OBJECT_ATTACHED_POINT,OBJECT_POS,OBJECT_REZZER_KEY,OBJECT_RUNNING_SCRIPT_COUNT,OBJECT_SIT_COUNT,OBJECT_NAME]);
+                                    ownerinfo=llGetObjectDetails(src2,[OBJECT_DESC,OBJECT_ATTACHED_POINT,OBJECT_POS,OBJECT_REZZER_KEY,OBJECT_RUNNING_SCRIPT_COUNT,OBJECT_SIT_COUNT,OBJECT_ROOT]);
+                                    if(llList2Key(ownerinfo,6)!=src2)src2=llList2Key(ownerinfo,6);
+                                    if(llList2Vector(ownerinfo,2)==ZERO_VECTOR)src=src2;
                                     desc=llList2String(ownerinfo,0);
                                     if(llGetSubString(desc,0,5)=="LBA.v.")//Kind of messy but this checks 'is direct damager a landmine'. Check if it has a LBA flag
                                     {
