@@ -77,7 +77,7 @@ default
     listen(integer c, string n, key id, string m)
     {
         if(hp<=0)return;
-        list ownerinfo=llGetObjectDetails(id,[OBJECT_OWNER,OBJECT_CREATOR,OBJECT_ATTACHED_POINT,OBJECT_REZZER_KEY,OBJECT_DESC,OBJECT_POS]);
+        list ownerinfo=llGetObjectDetails(id,[OBJECT_OWNER,OBJECT_CREATOR,OBJECT_ATTACHED_POINT,OBJECT_REZZER_KEY,OBJECT_DESC,OBJECT_POS,OBJECT_REZ_TIME]);
         if(llList2String(ownerinfo,0)=="")return;//Munition needs to stay around for a moment so that you can gather Owner & Creator details, otherwise fuck off.
         list mes=llParseString2List(m,[","],[" "]);
         if(llGetListLength(mes)>1)
@@ -126,17 +126,18 @@ default
                         }
                         else 
                         {
-                            if(llGetSubString(desc,0,5)=="LBA.v.")//Kind of messy but this checks 'is direct damager a landmine'. Check if it has a LBA flag
+                            if(llGetSubString(desc,0,5)=="LBA.v."&&(integer)((string)llGetObjectDetails(id,[OBJECT_TOTAL_INVENTORY_COUNT]))>(integer)((string)llGetObjectDetails(id,[OBJECT_TOTAL_SCRIPT_COUNT])))//Kind of messy but this checks 'is direct damager a landmine'. Check if it has a LBA flag
                             {
-                                string tod=llList2String(llCSV2List(desc),1);//Get the part where "time of day" would be
-                                if(llGetSubString(tod,0,1)=="t:"&&((float)llGetSubString(tod,2,-1))!=0)//Does it have t:####?
+                                list bb=llGetBoundingBox(src);//Get size, is it under 1x1x1 like a LANDMINE?
+                                vector tsize=llList2Vector(bb,1)-llList2Vector(bb,0);
+                                if(tsize.x<1&&tsize.y<1&&tsize.z<1)
                                 {
-                                    list bb=llGetBoundingBox(src);//Get size, is it under 1x1x1 like a LANDMINE?
-                                    vector tsize=llList2Vector(bb,1)-llList2Vector(bb,0);
-                                    if(tsize.x<1&&tsize.y<1&&tsize.z<1)
+                                    string time=(string)llParseString2List(llGetSubString(llList2String(ownerinfo,6),11,-8),[":","."],[]);
+                                    string comp=(string)llParseString2List(llGetSubString(llGetTimestamp(),11,-8),[":","."],[]);
+                                    if((integer)comp-(integer)time>5)//Does it have t:####?
                                     {
                                         tries=0;
-                                        n+=" "+llGetSubString(tod,2,-1);
+                                        n+=" @"+time;
                                         desc="";
                                     }
                                 }
@@ -148,21 +149,27 @@ default
                                 integer shortcut=llListFindList(recent,[src2]);
                                 if(shortcut==-1)
                                 {
-                                    ownerinfo=llGetObjectDetails(src2,[OBJECT_DESC,OBJECT_ATTACHED_POINT,OBJECT_POS,OBJECT_REZZER_KEY,OBJECT_RUNNING_SCRIPT_COUNT,OBJECT_SIT_COUNT,OBJECT_ROOT]);
-                                    if(llList2Key(ownerinfo,6)!=src2)src2=llList2Key(ownerinfo,6);
+                                    ownerinfo=llGetObjectDetails(src2,[OBJECT_DESC,OBJECT_ATTACHED_POINT,OBJECT_POS,OBJECT_REZZER_KEY,OBJECT_RUNNING_SCRIPT_COUNT,OBJECT_SIT_COUNT,OBJECT_ROOT,
+                                    OBJECT_REZ_TIME]);
+                                    if(llList2Key(ownerinfo,6)!=src2)
+                                    {
+                                        src2=llList2Key(ownerinfo,6);
+                                        jump srcfind;
+                                    }
                                     if(llList2Vector(ownerinfo,2)==ZERO_VECTOR)src=src2;
                                     desc=llList2String(ownerinfo,0);
-                                    if(llGetSubString(desc,0,5)=="LBA.v.")//Kind of messy but this checks 'is direct damager a landmine'. Check if it has a LBA flag
+                                    if(llGetSubString(desc,0,5)=="LBA.v."&&(integer)((string)llGetObjectDetails(src2,[OBJECT_TOTAL_INVENTORY_COUNT]))>(integer)((string)llGetObjectDetails(src2,[OBJECT_TOTAL_SCRIPT_COUNT])))//Kind of messy but this checks 'is direct damager a landmine'. Check if it has a LBA flag
                                     {
-                                        string tod=llList2String(llCSV2List(desc),1);//Get the part where "time of day" would be
-                                        if(llGetSubString(tod,0,1)=="t:"&&((float)llGetSubString(tod,2,-1))!=0)//Does it have t:####?
+                                        list bb=llGetBoundingBox(src);//Get size, is it under 1x1x1 like a LANDMINE?
+                                        vector tsize=llList2Vector(bb,1)-llList2Vector(bb,0);
+                                        if(tsize.x<1&&tsize.y<1&&tsize.z<1)
                                         {
-                                            list bb=llGetBoundingBox(src2);//Get size, is it under 1x1x1 like a LANDMINE?
-                                            vector tsize=llList2Vector(bb,1)-llList2Vector(bb,0);
-                                            if(tsize.x<1&&tsize.y<1&&tsize.z<1)
+                                            string time=(string)llParseString2List(llGetSubString(llList2String(ownerinfo,7),11,-8),[":","."],[]);
+                                            string comp=(string)llParseString2List(llGetSubString(llGetTimestamp(),11,-8),[":","."],[]);
+                                            if((integer)comp-(integer)time>5)//Does it have t:####?
                                             {
-                                                src=src2;
-                                                n=llList2String(ownerinfo,6)+" "+llGetSubString(tod,2,-1);
+                                                tries=0;
+                                                n+=" @"+time;
                                                 desc="";
                                             }
                                         }
