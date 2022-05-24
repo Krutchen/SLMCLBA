@@ -76,7 +76,6 @@ default
     }
     listen(integer c, string n, key id, string m)
     {
-        if(hp<=0)return;
         list ownerinfo=llGetObjectDetails(id,[OBJECT_OWNER,OBJECT_CREATOR,OBJECT_ATTACHED_POINT,OBJECT_REZZER_KEY,OBJECT_DESC,OBJECT_POS,OBJECT_REZ_TIME]);
         if(llList2String(ownerinfo,0)=="")return;//Munition needs to stay around for a moment so that you can gather Owner & Creator details, otherwise fuck off.
         list mes=llParseString2List(m,[","],[" "]);
@@ -153,7 +152,7 @@ default
                                     OBJECT_REZ_TIME]);
                                     if(llList2Key(ownerinfo,6)!=src2)
                                     {
-                                        src2=llList2Key(ownerinfo,6);
+                                        ownerinfo=llListReplaceList(ownerinfo,[llList2Key(ownerinfo,6)],3,3);
                                         jump srcfind;
                                     }
                                     if(llList2Vector(ownerinfo,2)==ZERO_VECTOR)src=src2;
@@ -250,6 +249,7 @@ default
                         }
                     }
                 }
+                if(hp<=0)return;
                 integer pf=llListFindList(proc,[owner,srcn,n]);
                 if(pf==-1)proc+=[owner,srcn,n,dmg,1,sit];
                 else
@@ -302,9 +302,9 @@ default
                 buffers--;
                 if(buffers>0)buffer+=" \n";
             }
-            handlehp();
             if(buffer!=[])llOwnerSay("\n"+(string)buffer);
             buffer=[];
+            handlehp();
         }
         if(recent!=[])
         {
