@@ -7,6 +7,7 @@ key me;
 float rev=2.3;//Current revision number, for just making sure people know you're on version X Y Z.             
 handlehp()//Updates your HP text. The only thing you should really dick with is the text display.
 {
+    if(hp<0)hp=0;
     string info="LBA.v.L."+llGetSubString((string)rev,0,3)+","+(string)hp+","+(string)maxhp;
     llSetLinkPrimitiveParamsFast(link,[PRIM_TEXT,"[LBA Slim] \n ["+(string)((integer)hp)+"/"+(string)((integer)maxhp)+"] \n ",<1.-(float)hp/maxhp,(float)hp/maxhp,0.>,1,PRIM_LINK_TARGET,LINK_THIS,PRIM_DESC,info]);
     if(hp==0)llDie();
