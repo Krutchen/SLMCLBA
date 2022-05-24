@@ -223,7 +223,7 @@ default
                                     OBJECT_REZ_TIME]);
                                     if(llList2Key(ownerinfo,6)!=src2)
                                     {
-                                        src2=llList2Key(ownerinfo,6);
+                                        ownerinfo=llListReplaceList(ownerinfo,[llList2Key(ownerinfo,6)],3,3);
                                         jump srcfind;
                                     }
                                     if(llList2Vector(ownerinfo,2)==ZERO_VECTOR)src=src2;
@@ -320,6 +320,7 @@ default
                         }
                     }
                 }
+                if(hp<=0)return;
                 integer dmgmult=dmg;
                 if(dmg>0)
                 {
@@ -401,9 +402,9 @@ default
                 buffers--;
                 if(buffers>0)buffer+=" \n";
             }
-            handlehp();
             if(buffer!=[])llOwnerSay("\n"+(string)buffer);
             buffer=[];
+            handlehp();
         }
         if(recent!=[])
         {
