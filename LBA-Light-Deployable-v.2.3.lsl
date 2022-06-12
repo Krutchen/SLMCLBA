@@ -42,6 +42,7 @@ open()
 {
     llSetLinkPrimitiveParamsFast(-1,[PRIM_TEXT,"",<1,1,1>,1]);
     integer hex=(integer)("0x" + llGetSubString(llMD5String((string)myKey,0), 0, 3));//My key hex
+    llListenRemove(lh);
     lh=llListen(hex,"","","");
 }
 key myKey;//My key! Duh!
@@ -75,190 +76,185 @@ default
     }
     listen(integer c, string n, key id, string m)
     {
-        list ownerinfo=llGetObjectDetails(id,[OBJECT_OWNER,OBJECT_CREATOR,OBJECT_ATTACHED_POINT,OBJECT_REZZER_KEY,OBJECT_DESC,OBJECT_POS,OBJECT_REZ_TIME]);
+        list ownerinfo=llGetObjectDetails(id,[OBJECT_OWNER,OBJECT_ATTACHED_POINT,OBJECT_REZZER_KEY,OBJECT_DESC,OBJECT_POS,OBJECT_REZ_TIME]);
         if(llList2String(ownerinfo,0)=="")return;//Munition needs to stay around for a moment so that you can gather Owner & Creator details, otherwise fuck off.
         list mes=llParseString2List(m,[","],[" "]);
-        if(llGetListLength(mes)>1)
+        if(llList2Key(mes,0)==myKey)//First things first, am I the target?
         {
-            if(llList2Key(mes,0)==myKey)//First things first, am I the target?
+            integer no=0;
+            if((key)n)no=1;
+            if((string)((float)n)==n||(string)((integer)n)==n)no=1;
+            if(no==1&&antigrief==0)return;
+            key owner=llList2Key(ownerinfo,0);//Gets the owner key from Ownerinfo
+            integer dmg=(integer)llList2Integer(mes,-1);//This is the damage, fuck you.
+            if(dmg>300)dmg=300;//Basic AT cap, the 4s check should be better for catching spam attempts, allows for heavier slower hits, but we still don't want 1000 AT being done to people.
+            if(dmg<-20)dmg=-20;//Flat limit on repairs to 20 per event. This should cockblock all overflow attempts as well. If you ever need more than this much per event you're being a dipshit.
+            key src=id;
+            integer sit=-1;
+            key osrc=src;
+            if(antigrief==1)//If you don't want to run this, either delete this section or set antigrief to 0
             {
-                integer no=0;
-                if((key)n)no=1;
-                if ((string)((float)n)==n||(string)((integer)n)==n)no=1;
-                if(no==1&&antigrief==0)return;
-                key owner=llList2Key(ownerinfo,0);//Gets the owner key from Ownerinfo
-                integer dmg=(integer)llList2Integer(mes,-1);//This is the damage, fuck you.
-                if(dmg>300)dmg=300;//Basic AT cap, the 4s check should be better for catching spam attempts, allows for heavier slower hits, but we still don't want 1000 AT being done to people.
-                if(dmg<-20)dmg=-20;//Flat limit on repairs to 20 per event. This should cockblock all overflow attempts as well. If you ever need more than this much per event you're being a dipshit.
-                key src=id;
-                integer sit=-1;
-                key osrc=src;
-                if(antigrief==1)//If you don't want to run this, either delete this section or set antigrief to 0
+                if(llListFindList(blacklist,[(string)owner])!=-1)return;
+                if(no==1)
                 {
-                    key creator=llList2Key(ownerinfo,1);//Gets the creator key from Ownerinfo
-                    if(llListFindList(blacklist,[(string)owner])!=-1||llListFindList(blacklist,[(string)creator])!=-1)return;
-                    if(no==1)
-                    {
-                        key owner=llList2Key(ownerinfo,0);
+                    key owner=llList2Key(ownerinfo,0);
     llOwnerSay("/me :: secondlife:///app/agent/"+(string)owner+"/about is being blacklisted for Keygen projectile usage");
     llRegionSayTo(owner,0,"/me :: You are being blacklisted for Keygen projectile usage");
-                        blacklist+=(string)owner;
-                        return;
-                    }
-                    integer att=llList2Integer(ownerinfo,2);
-                    sit=0;//Sit 0 for standing, sit 1 for seated av, sit 2 for deployable, sit 3 for close range weapon (attached & within 15m)
-                    string desc=llList2String(ownerinfo,4);
-                    integer tries=3;//We'll see if we can do 3 chains, that's pretty liberal because usually 1 or 2 will do it.
-                    list dl=llCSV2List(desc);
-                    if(att)
+                    blacklist+=(string)owner;
+                    return;
+                }
+                integer att=llList2Integer(ownerinfo,1);
+                sit=0;//Sit 0 for standing, sit 1 for seated av, sit 2 for deployable, sit 3 for close range weapon (attached & within 15m)
+                string desc=llList2String(ownerinfo,3);
+                integer tries=3;//We'll see if we can do 3 chains, that's pretty liberal because usually 1 or 2 will do it.
+                list dl=llCSV2List(desc);
+                if(att)
+                {
+                    if(llVecDist(llGetPos(),llList2Vector(ownerinfo,4))<=15)sit=3;
+                    if(llGetAgentInfo(owner)&AGENT_ON_OBJECT)sit=1;
+                }
+                else
+                {
+                    if(llGetSubString(desc,0,5)=="LBA.v."&&llGetListLength(dl)>=3&&llList2Integer(dl,2)>0&&(integer)((string)llGetObjectDetails(id,[OBJECT_RUNNING_SCRIPT_COUNT]))>1)
                     {
-                        if(llVecDist(llGetPos(),llList2Vector(ownerinfo,5))<=15)sit=3;
-                        if(llGetAgentInfo(owner)&AGENT_ON_OBJECT)sit=1;
+                        src=id;//Is this a delpoyable?
+                        sit=2;
                     }
-                    else
+                    else 
                     {
-                        if(llGetSubString(desc,0,5)=="LBA.v."&&llGetListLength(dl)>=3&&llList2Integer(dl,2)>0&&(integer)((string)llGetObjectDetails(id,[OBJECT_RUNNING_SCRIPT_COUNT]))>1)
+                        if(llGetSubString(desc,0,5)=="LBA.v."&&(integer)((string)llGetObjectDetails(id,[OBJECT_TOTAL_INVENTORY_COUNT]))>(integer)((string)llGetObjectDetails(id,[OBJECT_TOTAL_SCRIPT_COUNT])))//Kind of messy but this checks 'is direct damager a landmine'. Check if it has a LBA flag
                         {
-                            src=id;//Is this a delpoyable?
-                            sit=2;
-                        }
-                        else 
-                        {
-                            if(llGetSubString(desc,0,5)=="LBA.v."&&(integer)((string)llGetObjectDetails(id,[OBJECT_TOTAL_INVENTORY_COUNT]))>(integer)((string)llGetObjectDetails(id,[OBJECT_TOTAL_SCRIPT_COUNT])))//Kind of messy but this checks 'is direct damager a landmine'. Check if it has a LBA flag
+                            list bb=llGetBoundingBox(src);//Get size, is it under 1x1x1 like a LANDMINE?
+                            vector tsize=llList2Vector(bb,1)-llList2Vector(bb,0);
+                            if(tsize.x<1&&tsize.y<1&&tsize.z<1)
                             {
-                                list bb=llGetBoundingBox(src);//Get size, is it under 1x1x1 like a LANDMINE?
-                                vector tsize=llList2Vector(bb,1)-llList2Vector(bb,0);
-                                if(tsize.x<1&&tsize.y<1&&tsize.z<1)
+                                string time=(string)llParseString2List(llGetSubString(llList2String(ownerinfo,5),11,-8),[":","."],[]);
+                                string comp=(string)llParseString2List(llGetSubString(llGetTimestamp(),11,-8),[":","."],[]);
+                                if((integer)comp-(integer)time>5)//Does it have t:####?
                                 {
-                                    string time=(string)llParseString2List(llGetSubString(llList2String(ownerinfo,6),11,-8),[":","."],[]);
-                                    string comp=(string)llParseString2List(llGetSubString(llGetTimestamp(),11,-8),[":","."],[]);
-                                    if((integer)comp-(integer)time>5)//Does it have t:####?
-                                    {
-                                        tries=0;
-                                        n+=" @"+time;
-                                        desc="";
-                                    }
+                                    tries=0;
+                                    n+=" @"+time;
+                                    desc="";
                                 }
                             }
-                            if(tries)
+                        }
+                        if(tries)
+                        {
+                            @srcfind;//Jumps back here for iterations if the check didn't get a valid source
+                            key src2=llList2Key(ownerinfo,2);//Src2 is the last rezzer key
+                            integer shortcut=llListFindList(recent,[src2]);
+                            if(shortcut==-1)
                             {
-                                @srcfind;//Jumps back here for iterations if the check didn't get a valid source
-                                key src2=llList2Key(ownerinfo,3);//Src2 is the last rezzer key
-                                integer shortcut=llListFindList(recent,[src2]);
-                                if(shortcut==-1)
+                                ownerinfo=llGetObjectDetails(src2,[OBJECT_DESC,OBJECT_ATTACHED_POINT,OBJECT_REZZER_KEY,OBJECT_POS,OBJECT_RUNNING_SCRIPT_COUNT,OBJECT_SIT_COUNT,OBJECT_ROOT,OBJECT_REZ_TIME]);
+                                if(llList2Key(ownerinfo,6)!=src2)
                                 {
-                                    ownerinfo=llGetObjectDetails(src2,[OBJECT_DESC,OBJECT_ATTACHED_POINT,OBJECT_POS,OBJECT_REZZER_KEY,OBJECT_RUNNING_SCRIPT_COUNT,OBJECT_SIT_COUNT,OBJECT_ROOT,
-                                    OBJECT_REZ_TIME]);
-                                    if(llList2Key(ownerinfo,6)!=src2)
+                                    ownerinfo=llListReplaceList(ownerinfo,[llList2Key(ownerinfo,6)],3,3);
+                                    jump srcfind;
+                                }
+                                if(llList2Vector(ownerinfo,3)==ZERO_VECTOR)src=src2;
+                                desc=llList2String(ownerinfo,0);
+                                if(llGetSubString(desc,0,5)=="LBA.v."&&(integer)((string)llGetObjectDetails(src2,[OBJECT_TOTAL_INVENTORY_COUNT]))>(integer)((string)llGetObjectDetails(src2,[OBJECT_TOTAL_SCRIPT_COUNT])))//Kind of messy but this checks 'is direct damager a landmine'. Check if it has a LBA flag
+                                {
+                                    list bb=llGetBoundingBox(src2);//Get size, is it under 1x1x1 like a LANDMINE?
+                                    vector tsize=llList2Vector(bb,1)-llList2Vector(bb,0);
+                                    if(tsize.x<1&&tsize.y<1&&tsize.z<1)
                                     {
-                                        ownerinfo=llListReplaceList(ownerinfo,[llList2Key(ownerinfo,6)],3,3);
-                                        jump srcfind;
-                                    }
-                                    if(llList2Vector(ownerinfo,2)==ZERO_VECTOR)src=src2;
-                                    desc=llList2String(ownerinfo,0);
-                                    if(llGetSubString(desc,0,5)=="LBA.v."&&(integer)((string)llGetObjectDetails(src2,[OBJECT_TOTAL_INVENTORY_COUNT]))>(integer)((string)llGetObjectDetails(src2,[OBJECT_TOTAL_SCRIPT_COUNT])))//Kind of messy but this checks 'is direct damager a landmine'. Check if it has a LBA flag
-                                    {
-                                        list bb=llGetBoundingBox(src2);//Get size, is it under 1x1x1 like a LANDMINE?
-                                        vector tsize=llList2Vector(bb,1)-llList2Vector(bb,0);
-                                        if(tsize.x<1&&tsize.y<1&&tsize.z<1)
+                                        string time=(string)llParseString2List(llGetSubString(llList2String(ownerinfo,7),11,-8),[":","."],[]);
+                                        string comp=(string)llParseString2List(llGetSubString(llGetTimestamp(),11,-8),[":","."],[]);
+                                        if((integer)comp-(integer)time>5)//Does it have t:####?
                                         {
-                                            string time=(string)llParseString2List(llGetSubString(llList2String(ownerinfo,7),11,-8),[":","."],[]);
-                                            string comp=(string)llParseString2List(llGetSubString(llGetTimestamp(),11,-8),[":","."],[]);
-                                            if((integer)comp-(integer)time>5)//Does it have t:####?
-                                            {
-                                                tries=0;
-                                                n+=" @"+time;
-                                                desc="";
-                                            }
-                                        }
-                                    }
-                                    if(src!=src2)
-                                    {
-                                        att=llList2Integer(ownerinfo,1);//Is the rezzer attached? If so that's your source
-                                        if(!att)//Otherwise check their info
-                                        {
-                                            //Does this have a valid LBA description and more than one script? Then it's a deployable and you can decide that's your source.
-                                            list dl=llCSV2List(desc);
-                                            if(llGetSubString(desc,0,5)=="LBA.v."&&llGetListLength(dl)>=3&&llList2Integer(dl,2)>0&&llList2Integer(ownerinfo,4)>1)
-                                            {
-                                                src=src2;
-                                                sit=2;
-                                            }
-                                            else desc="";
-                                        }
-                                        else 
-                                        {
-                                            if(llGetAgentInfo(owner)&AGENT_ON_OBJECT)sit=1;
-                                            src=src2;
+                                            tries=0;
+                                            n+=" @"+time;
                                             desc="";
                                         }
-                                        if(llList2Vector(ownerinfo,2)==ZERO_VECTOR)tries=0;
-                                        if(llList2Integer(ownerinfo,5)>0)
-                                        {
-                                            if(sit!=2)sit=1;
-                                            src=src2;
-                                            tries=0;
-                                        }
-                                        if(src!=src2&&tries-->0)jump srcfind;
                                     }
                                 }
-                                else src=llList2Key(recent,shortcut);
+                                if(src!=src2)
+                                {
+                                    att=llList2Integer(ownerinfo,1);//Is the rezzer attached? If so that's your source
+                                    if(!att)//Otherwise check their info
+                                    {
+                                        //Does this have a valid LBA description and more than one script? Then it's a deployable and you can decide that's your source.
+                                        list dl=llCSV2List(desc);
+                                        if(llGetSubString(desc,0,5)=="LBA.v."&&llGetListLength(dl)>=3&&llList2Integer(dl,2)>0&&llList2Integer(ownerinfo,4)>1)
+                                        {
+                                            src=src2;
+                                            sit=2;
+                                        }
+                                        else desc="";
+                                    }
+                                    else 
+                                    {
+                                        if(llGetAgentInfo(owner)&AGENT_ON_OBJECT)sit=1;
+                                        src=src2;
+                                        desc="";
+                                    }
+                                    if(llList2Vector(ownerinfo,3)==ZERO_VECTOR)tries=0;
+                                    if(llList2Integer(ownerinfo,5)>0)
+                                    {
+                                        if(sit!=2)sit=1;
+                                        src=src2;
+                                        tries=0;
+                                    }
+                                    if(src!=src2&&tries-->0)jump srcfind;
+                                }
                             }
+                            else src=llList2Key(recent,shortcut);
                         }
                     }
                 }
-                string srcn=llKey2Name(src);
-                integer tf=llListFindList(totals,[owner]);
-                if(tf==-1)totals+=[owner,dmg];
-                else totals=llListReplaceList(totals,[llList2Integer(totals,tf+1)+dmg],tf+1,tf+1);
-                integer rf=llListFindList(recent,[owner,src]);
-                if(rf==-1)recent+=[owner,src,n,dmg,llGetTime(),sit];
-                else 
-                {
-                    integer new=llList2Integer(recent,rf+3)+dmg;
-                    recent=llListReplaceList(recent,[new],rf+3,rf+3);
-                    if(antigrief)
-                    {
-                        integer val=150;
-                        integer nsit=llList2Integer(recent,rf+5);
-                        if(sit!=nsit&&nsit==0)
-                        {
-                            nsit=sit;
-                            recent=llListReplaceList(recent,[sit],rf+5,rf+5);
-                        }
-                        sit=nsit;
-                        if(nsit>0)val=300;
-                        if(new>val)
-                        {
-                            if(tf==-1)tf=llListFindList(totals,[owner]);
-                            integer tdamage=llList2Integer(totals,tf+1);
-                            llOwnerSay("/me :: secondlife:///app/agent/"+(string)owner+"/about has exceeded "+(string)val+" AT / 4s using "+llKey2Name(src)+" with "+(string)new+" total damage.
-    This avatar has sourced "+(string)tdamage+" before being blacklisted.");
-                            llRegionSayTo(owner,0,"/me :: You have exceeded "+(string)val+" / 4s using "+llKey2Name(src)+" with "+(string)new+" total damage.
-    You avatar has sourced "+(string)tdamage+" before being blacklisted.");
-                            blacklist+=(string)owner;
-                            hp+=tdamage;
-                            if(hp<=0)hp=0;
-                            if(hp>=maxhp)hp=maxhp;
-                            handlehp();
-                            llListReplaceList(recent,[],rf,rf+5);
-                            return;
-                        }
-                    }
-                }
-                if(hp<=0)return;
-                ++events;//Adds to events
-                if(events==1)llSetTimerEvent(1*llGetRegionTimeDilation());//On the first event, the processing countdown/timer gets started.
-                hp-=dmg;
-                if(hp>=maxhp)hp=maxhp;
-                handlehp();
             }
+            string srcn=llKey2Name(src);
+            integer tf=llListFindList(totals,[owner]);
+            if(tf==-1)totals+=[owner,dmg];
+            else totals=llListReplaceList(totals,[llList2Integer(totals,tf+1)+dmg],tf+1,tf+1);
+            integer rf=llListFindList(recent,[owner,src]);
+            if(rf==-1)recent+=[owner,src,n,dmg,llGetTime(),sit];
+            else 
+            {
+                integer new=llList2Integer(recent,rf+3)+dmg;
+                recent=llListReplaceList(recent,[new],rf+3,rf+3);
+                if(antigrief)
+                {
+                    integer val=150;
+                    integer nsit=llList2Integer(recent,rf+5);
+                    if(sit!=nsit&&nsit==0)
+                    {
+                        nsit=sit;
+                        recent=llListReplaceList(recent,[sit],rf+5,rf+5);
+                    }
+                    sit=nsit;
+                    if(nsit>0)val=300;
+                    if(new>val)
+                    {
+                        if(tf==-1)tf=llListFindList(totals,[owner]);
+                        integer tdamage=llList2Integer(totals,tf+1);
+                        llOwnerSay("/me :: secondlife:///app/agent/"+(string)owner+"/about has exceeded "+(string)val+" AT / 4s using "+llKey2Name(src)+" with "+(string)new+" total damage.
+    This avatar has sourced "+(string)tdamage+" before being blacklisted.");
+                        llRegionSayTo(owner,0,"/me :: You have exceeded "+(string)val+" / 4s using "+llKey2Name(src)+" with "+(string)new+" total damage.
+    You avatar has sourced "+(string)tdamage+" before being blacklisted.");
+                        blacklist+=(string)owner;
+                        hp+=tdamage;
+                        if(hp<=0)hp=0;
+                        if(hp>=maxhp)hp=maxhp;
+                        handlehp();
+                        llListReplaceList(recent,[],rf,rf+5);
+                        return;
+                    }
+                }
+            }
+            if(hp<=0)return;
+            ++events;//Adds to events
+            if(events==1)llSetTimerEvent(1);//On the first event, the processing countdown/timer gets started.
+            hp-=dmg;
+            if(hp>=maxhp)hp=maxhp;
+            handlehp();
         }
     }
     timer()
     {
         events=0;
-        if(recent!=[])
+        if(recent)
         {
             integer buffers=(llGetListLength(recent)+1)/5;
             integer i=0;
