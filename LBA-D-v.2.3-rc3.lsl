@@ -154,7 +154,7 @@ default
             if(dmg>300)dmg=300;//Basic AT cap, the 4s check should be better for catching spam attempts, allows for heavier slower hits, but we still don't want 1000 AT being done to people.
             if(dmg<-20)dmg=-20;//Flat limit on repairs to 20 per event. This should cockblock all overflow attempts as well. If you ever need more than this much per event you're being a dipshit.
             key src=id;
-            key rez=llList2Key(ownerinfo,3);
+            key rez=llList2Key(ownerinfo,2);
             integer sit=-1;
             key osrc=src;
             if(antigrief==1)//If you don't want to run this, either delete this section or set antigrief to 0
@@ -175,7 +175,7 @@ default
                 list dl=llCSV2List(desc);
                 if(att)
                 {
-                    if(llVecDist(llGetPos(),llList2Vector(ownerinfo,4))<=15)sit=3;
+                    if(llVecDist(llGetPos(),pos)<=15)sit=3;
                     if(llGetAgentInfo(owner)&AGENT_ON_OBJECT)sit=1;
                 }
                 else
