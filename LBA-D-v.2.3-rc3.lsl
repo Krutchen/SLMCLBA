@@ -346,7 +346,7 @@ default
             }
             ++events;//Adds to events
             if(events==1)llSetTimerEvent(1);//On the first event, the processing countdown/timer gets started.
-            hp-=dmg;
+            hp-=dmgmult;
             if(hp>=maxhp)hp=maxhp;
             handlehp();
         }
