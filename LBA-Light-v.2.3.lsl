@@ -241,7 +241,7 @@ default
                         handlehp();
                         llListReplaceList(recent,[],rf,rf+5);
                         integer pf=llListFindList(proc,[owner,llKey2Name(src)]);
-                        proc=llListReplaceList(proc,[0],pf,pf+5);
+                        proc=llListReplaceList(proc,[],pf,pf+5);
                         return;
                     }
                 }
