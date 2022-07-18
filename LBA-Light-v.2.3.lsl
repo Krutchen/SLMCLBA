@@ -24,14 +24,14 @@ handlehp()//Updates your HP text. The only thing you should really dick with is 
         --t;
     }
     display+="]";
-    string info="LBA.v.L."+llGetSubString((string)rev,0,3)+","+(string)hp+","+(string)maxhp;
+    string info="LBA.v.L."+rev+","+(string)hp+","+(string)maxhp;
     llSetLinkPrimitiveParamsFast(link,[PRIM_TEXT,"[LBA Light] \n ["+(string)((integer)hp)+"/"+(string)((integer)maxhp)+"] \n "+display,<1.-(float)hp/maxhp,(float)hp/maxhp,0.>,1,PRIM_LINK_TARGET,LINK_THIS,PRIM_DESC,info]);
     if(hp==0&&proc==[])die();
 }
 //
 //
 //DON'T TOUCH ANY OF THE SHIT BELOW THIS - REMEMBER, SAVE THIS IN MONO.
-float rev=2.3;//Current revision number, for just making sure people know you're on version X Y Z.
+string rev="2.3";//Current revision number, for just making sure people know you're on version X Y Z.
 list proc=[];//Damage events being processed into the buffer
 list buffer=[];//This builds the message for the ownersay when you get damaged, don't touch me either
 list recent=[];//List of things that have already hurt you.
