@@ -15,7 +15,6 @@ init(integer s)
 {
     if(s <= maxhp && s > 0) hp = s;
     else hp = maxhp;
-    if(!cap) cap = maxhp;
     me = llGetKey();
     hex = (integer)("0x" + llGetSubString(llMD5String((string)me,0), 0, 3));
     llListenRemove(listenId);
