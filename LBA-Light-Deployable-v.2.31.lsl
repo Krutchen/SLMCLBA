@@ -1,4 +1,4 @@
-//      LBA v.2.3
+//      LBA v.2.31
 //  These are your configurable values. You don't really need to change anything under this except for your style of death in the die() command
 integer link=LINK_THIS;//WHERE YOUR HP TEXT WILL BE DISPLAYED! DON'T FUCK UP!
 integer hp;//This is your HP. It is affected by rez params, but on startup it turns 
@@ -31,7 +31,7 @@ handlehp()//Updates your HP text. The only thing you should really dick with is 
 //
 //
 //DON'T TOUCH ANY OF THE SHIT BELOW THIS - REMEMBER, SAVE THIS IN MONO.
-float rev=2.3;//Current revision number, for just making sure people know you're on version X Y Z.
+float rev=2.31;//Current revision number, for just making sure people know you're on version X Y Z.
 list buffer=[];//This builds the message for the ownersay when you get damaged, don't touch me either
 list recent=[];//List of things that have already hurt you.
 list totals=[];//The combined damage from munitions, don't touch me either you fuckboy. Processed damage gets pushed into this
@@ -148,7 +148,7 @@ default
                                 ownerinfo=llGetObjectDetails(src2,[OBJECT_DESC,OBJECT_ATTACHED_POINT,OBJECT_REZZER_KEY,OBJECT_POS,OBJECT_RUNNING_SCRIPT_COUNT,OBJECT_SIT_COUNT,OBJECT_ROOT,OBJECT_REZ_TIME]);
                                 if(llList2Key(ownerinfo,6)!=src2)
                                 {
-                                    ownerinfo=llListReplaceList(ownerinfo,[llList2Key(ownerinfo,6)],3,3);
+                                    ownerinfo=llListReplaceList(ownerinfo,[llList2Key(ownerinfo,6)],2,2);
                                     jump srcfind;
                                 }
                                 if(llList2Vector(ownerinfo,3)==ZERO_VECTOR)src=src2;
