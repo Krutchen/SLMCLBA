@@ -149,7 +149,7 @@ default
                                 ownerinfo=llGetObjectDetails(src2,[OBJECT_DESC,OBJECT_ATTACHED_POINT,OBJECT_REZZER_KEY,OBJECT_POS,OBJECT_RUNNING_SCRIPT_COUNT,OBJECT_SIT_COUNT,OBJECT_ROOT,OBJECT_REZ_TIME]);
                                 if(llList2Key(ownerinfo,6)!=src2)
                                 {
-                                    ownerinfo=llListReplaceList(ownerinfo,[llList2Key(ownerinfo,6)],3,3);
+                                    ownerinfo=llListReplaceList(ownerinfo,[llList2Key(ownerinfo,6)],2,2);
                                     jump srcfind;
                                 }
                                 if(llList2Vector(ownerinfo,3)==ZERO_VECTOR)src=src2;
