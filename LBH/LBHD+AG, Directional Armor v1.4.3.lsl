@@ -213,10 +213,10 @@ default
                             if(los(pos,posfix))damage((integer)amt,id,pos,posfix,0.0,name);
                             else damage((integer)amt,id,pos,targetPos,0.0,name);
                         }
-                        else damage(amt,id,pos,targetPos,tmod,name);
+                        else damage((integer)amt,id,pos,targetPos,tmod,name);
                     }
                 }
-                else damage(amt,id,pos,targetPos,0.0,name);
+                else damage((integer)amt,id,pos,targetPos,0.0,name);
             }
         }
     }
