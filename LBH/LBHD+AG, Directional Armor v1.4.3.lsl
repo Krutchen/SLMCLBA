@@ -1,4 +1,4 @@
-string ver="DHAGv1.4.2";//LBA Version
+string ver="DHAGv1.4.3";//LBA Version
 integer mhp=200;//Maximum HP
 integer hp=mhp;//Current HP
 //Anti-Grief
