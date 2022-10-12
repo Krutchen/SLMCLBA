@@ -12,8 +12,9 @@ damage(integer amt, key id)
     {
         if(llGetTime()>1.0)//Optional healing cooldown
         {
+            amt*=-1;
             if(amt>(float)hp*0.1)amt=llRound((float)hp*0.1);//Optional healing cap
-            hp-=amt;
+            hp+=amt;
             if(hp>mhp)hp=mhp;//Used to prevent overhealing
             llResetTime();
         }
