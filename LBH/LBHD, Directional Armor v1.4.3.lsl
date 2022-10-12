@@ -1,4 +1,4 @@
-string ver="DHv1.4.2";//LBA Version
+string ver="DHv1.4.3";//LBA Version
 integer mhp=200;//Maximum HP
 integer hp=mhp;//Current HP
 //Positive Numbers Deal Damage
