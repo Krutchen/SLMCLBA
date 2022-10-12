@@ -53,8 +53,9 @@ damage(integer amt, key id,vector pos, vector targetPos, float tmod, string name
     {
         if(llGetTime()>1.0)//Optional healing cooldown
         {
+            amt*=-1.0;
             if(amt>(float)hp*0.1)amt=llRound(hp*0.1);//Optional healing cap
-            hp-=amt;
+            hp+=amt;
             if(hp>mhp)hp=mhp;//Used to prevent overhealing
             llResetTime();
         }
