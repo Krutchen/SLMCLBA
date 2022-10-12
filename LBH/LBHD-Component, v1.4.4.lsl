@@ -1,5 +1,5 @@
 //MBTLBA was a stupid name
-string ver="DHCv1.4.3";//LBA Version
+string ver="DHCv1.4.4";//LBA Version
 //efx
 integer burning;//burning flag
 integer repair;//repair timer
@@ -71,14 +71,15 @@ damage(integer amt, key id,vector pos, vector targetPos,vector tmod,string name)
                 llMessageLinked(-4,1,"","");
                 llOwnerSay("Status Repaired");
             }
+            amt*=-1.0;
             if(amt>(float)hp*0.1)amt=llRound(hp*0.1);//Optional healing cap
-            hp-=amt;
+            hp+=amt;
             if(hp>mhp)hp=mhp;//Used to prevent overhealing
             llResetTime();
         }
         //Be sure to update the listen event code block to allow negative damage values through.
     }
-    else if(amt<2)
+    else if(amt<6)
     {
         llRegionSayTo(llGetOwnerKey(id),0,"*plink*");
         return; //Blocks micro-LBA, stop that shit
