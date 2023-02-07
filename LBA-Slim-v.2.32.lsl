@@ -3,7 +3,7 @@ integer maxhp = 100;
 integer link = 0;
 integer listenId;
 key me;
-string rev="2.3";//Current revision number, for just making sure people know you're on version X Y Z.          
+string rev="2.32";//Current revision number, for just making sure people know you're on version X Y Z.          
 handlehp()//Updates your HP text. The only thing you should really dick with is the text display.
 {
     if(hp<0)hp=0;
