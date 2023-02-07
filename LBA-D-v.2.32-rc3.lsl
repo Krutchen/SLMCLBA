@@ -1,4 +1,4 @@
-//      LBA v.2.31
+//      LBA v.2.32
 //  These are your configurable values. You don't really need to change anything under this except for your style of death in the die() command
 integer link=LINK_THIS;//WHERE YOUR HP TEXT WILL BE DISPLAYED! DON'T FUCK UP!
 integer hp;//This is your HP. It is affected by rez params, but on startup it turns 
@@ -81,7 +81,7 @@ handlehp()//Updates your HP text. The only thing you should really dick with is 
 //
 //
 //DON'T TOUCH ANY OF THE SHIT BELOW THIS - REMEMBER, SAVE THIS IN MONO.
-string rev="2.31";//Current revision number, for just making sure people know you're on version X Y Z.
+string rev="2.32";//Current revision number, for just making sure people know you're on version X Y Z.
 list proc=[];//Damage events being processed into the buffer
 list buffer=[];//This builds the message for the ownersay when you get damaged, don't touch me either
 list recent=[];//List of things that have already hurt you.
