@@ -17,7 +17,7 @@ handlehp()//Updates your HP text. The only thing you should really dick with is 
         	string info="LBA.v.L."+rev+","+(string)hp+","+(string)maxhp;
             num_hits_without_update = 0;
             llSetLinkPrimitiveParamsFast(link,[
-                PRIM_TEXT,"[GLBA-S] \n AP: " + (string)(hp) + "/" +(string)(maxhp),<0.0,1.0,0.0>,1.0,
+                PRIM_TEXT,"[LBA Slim] \n AP: " + (string)(hp) + "/" +(string)(maxhp),<0.0,1.0,0.0>,1.0,
                 PRIM_LINK_TARGET, LINK_THIS,
                 PRIM_DESC, info
             ]);
