@@ -7,8 +7,8 @@ integer num_hits_without_update=0;
 string rev = "3.0";
 handlehp()//Updates your HP text. The only thing you should really dick with is the text display.
 {
-		if(hp<1) {
-            hp=0;
+	if(hp<=0) {
+		llDie();
         }
         if(num_hits_without_update < 20) {
             num_hits_without_update++;
