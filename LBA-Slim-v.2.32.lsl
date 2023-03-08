@@ -47,7 +47,7 @@ default
     {
         num_hits_without_update = 0;
         llSetLinkPrimitiveParamsFast(link,[
-            PRIM_TEXT,"[GLBA-S] \n AP: " + (string)(hp) + "/" +(string)(maxhp),<0.0,1.0,0.0>,1.0,
+            PRIM_TEXT,"[LBA Slim] \n AP: " + (string)(hp) + "/" +(string)(maxhp),<0.0,1.0,0.0>,1.0,
             PRIM_LINK_TARGET, LINK_THIS,
             PRIM_DESC, "LBA.v.L.GLBA.1.3," + (string)hp + "," + (string)maxhp
         ]);
