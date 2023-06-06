@@ -3,25 +3,13 @@ integer maxhp = 100;
 integer link = 0;
 integer listenId;
 key me;
-integer num_hits_without_update=0;
-string rev = "3.0";
+string rev="2.32";//Current revision number, for just making sure people know you're on version X Y Z.          
 handlehp()//Updates your HP text. The only thing you should really dick with is the text display.
 {
-	if(hp<=0) {
-		llDie();
-        }
-        if(num_hits_without_update < 20) {
-            num_hits_without_update++;
-            llSetTimerEvent(0.15);
-        } else {
-        	string info="LBA.v.L."+rev+","+(string)hp+","+(string)maxhp;
-            num_hits_without_update = 0;
-            llSetLinkPrimitiveParamsFast(link,[
-                PRIM_TEXT,"[LBA Slim] \n AP: " + (string)(hp) + "/" +(string)(maxhp),<0.0,1.0,0.0>,1.0,
-                PRIM_LINK_TARGET, LINK_THIS,
-                PRIM_DESC, info
-            ]);
-        }
+    if(hp<0)hp=0;
+    string info="LBA.v.L."+rev+","+(string)hp+","+(string)maxhp;
+    llSetLinkPrimitiveParamsFast(link,[PRIM_TEXT,"[LBA Slim] \n ["+(string)((integer)hp)+"/"+(string)((integer)maxhp)+"] \n ",<1.-(float)hp/maxhp,(float)hp/maxhp,0.>,1,PRIM_LINK_TARGET,LINK_THIS,PRIM_DESC,info]);
+    if(hp==0)llDie();
 }
 init(integer s)
 {
@@ -35,23 +23,13 @@ init(integer s)
 }
 default
 {
-    state_entry() 
+    state_entry()
     {
-    	init(0);
+        init(0);
     }
     on_rez(integer sp)
     {
         init(sp);
-    }
-    timer() 
-    {
-        num_hits_without_update = 0;
-        llSetLinkPrimitiveParamsFast(link,[
-            PRIM_TEXT,"[LBA Slim] \n AP: " + (string)(hp) + "/" +(string)(maxhp),<0.0,1.0,0.0>,1.0,
-            PRIM_LINK_TARGET, LINK_THIS,
-            PRIM_DESC, "LBA.v.L.GLBA.1.3," + (string)hp + "," + (string)maxhp
-        ]);
-        llSetTimerEvent(0);
     }
     collision_start(integer n)
     {
@@ -71,6 +49,6 @@ default
             hp -= dmg;
             if(hp > maxhp) hp = maxhp;
             handlehp();
-        }
-    }
+        }       
+    } 
 }
