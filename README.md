@@ -40,9 +40,11 @@ Take the vehicle into your inventory and rez it where you want.
 # Contributing
 
 ## Basics
-For those new to git, or the open source GitHub experience, you can follow these two tutorials:
-- [GitHub "Hello World" Tutorial](https://guides.github.com/activities/hello-world/)
-- ["Forking" a Repository](https://guides.github.com/activities/forking/)
+For those new to git, or the open source GitHub experience, I highly recommend you complete the basic [GitHub "Hello World" Tutorial](https://guides.github.com/activities/hello-world/) before contributing.
+
+Once or if you understand the essentials of git and/or GitHub, follow this tutorial to fork this repository:
+
+["Forking" a Repository](https://guides.github.com/activities/forking/)
 
 Once you have created a fork, and modified it, you can submit a pull request by going to [uncertain-string/SLMCA/pulls](https://github.com/uncertain-string/SLMCLBA/pulls) and hitting "New pull request."
 
