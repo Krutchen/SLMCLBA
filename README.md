@@ -71,4 +71,4 @@ You will notice that homesteads have higher script time. This is because there i
 ![image](https://user-images.githubusercontent.com/28276562/148669457-07c7ced3-ba6f-4fd0-bf9d-f4077c0c75b1.png)
 
 ## Notes
-You will notice that full sims have a higher script
+You will notice that full sims report a higher script time average, this is because full sims have 4 times the capacity of a homestead, so they schedule far more script executions per frame, and allocate far more CPU time for scripts per frame than homesteads.
