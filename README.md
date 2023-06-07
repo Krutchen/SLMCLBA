@@ -46,7 +46,11 @@ Once or if you understand the essentials of git and/or GitHub, follow this tutor
 
 ["Forking" a Repository](https://guides.github.com/activities/forking/)
 
-Once you have created a fork, and modified it, you can submit a pull request by going to [uncertain-string/SLMCA/pulls](https://github.com/uncertain-string/SLMCLBA/pulls) and hitting "New pull request."
+Once you have created a fork, and modified it, you can submit a pull request by going to [uncertain-string/SLMCA/pulls](https://github.com/uncertain-string/SLMCLBA/pulls) and hitting "New pull request." 
+
+GitHub has provided this tutorial on [How to Collaborate using Pull Requests from a Fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork)
+
+If you need help, contact `frick.teardrop`.
 
 ## Help
 If you have any further questions, contact `frick.teardrop` in Second Life. Frick is always happy to help anybody understand open source projects, and how git (and collaborating within GitHub) works.
