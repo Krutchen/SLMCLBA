@@ -1,4 +1,4 @@
-# SLMCLBA - GLBA Fork
+# Listen Based Armor (LBA)
 Performant listen based armour for the Secondlife Military Community.
 
 This repository contains the most up-to-date and lag-free scripts for LBA, as well as the documentation provided by upstream. 
