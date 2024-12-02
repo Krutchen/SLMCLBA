@@ -1,30 +1,34 @@
 integer hp;
-integer maxhp = 100;
-integer link = 0;
-integer listenId;
+integer hp_max = 100;
+integer link = LINK_THIS;
+integer listen_id;
 key me;
-string rev="2.32";//Current revision number, for just making sure people know you're on version X Y Z.          
-handlehp()//Updates your HP text. The only thing you should really dick with is the text display.
+string rev = "2.32"; //Current revision number, for just making sure people know you're on version X Y Z.
+handle_hp() //Updates your HP text. The only thing you should really dick with is the text display.
 {
-    if(hp<0)hp=0;
-    string info="LBA.v.L."+rev+","+(string)hp+","+(string)maxhp;
-    llSetLinkPrimitiveParamsFast(link,[PRIM_TEXT,"[LBA Slim] \n ["+(string)((integer)hp)+"/"+(string)((integer)maxhp)+"] \n ",<1.-(float)hp/maxhp,(float)hp/maxhp,0.>,1,PRIM_LINK_TARGET,LINK_THIS,PRIM_DESC,info]);
-    if(hp==0)llDie();
+    if(hp > hp_max) hp = hp_max;
+    if(hp <= 0) llDie();
+    string text = (string)["[LBA Slim]\n[", hp, "/", hp_max, "]"];
+    string info = llList2CSV(["LBA.v.L."+rev, hp, hp_max]);
+    float ratio = (float)hp / hp_max;
+    vector color = <1 - ratio, ratio, 0>;
+    llSetLinkPrimitiveParamsFast(link, [PRIM_TEXT, text, color, 1, PRIM_LINK_TARGET, LINK_THIS, PRIM_DESC, info]);
 }
-init(integer s)
+init(integer sp)
 {
-    if(s <= maxhp && s > 0) hp = s;
-    else hp = maxhp;
+    if(sp <= hp_max && sp > 0) hp = sp;
+    else hp = hp_max;
     me = llGetKey();
-    integer hex = (integer)("0x" + llGetSubString(llMD5String((string)me,0), 0, 3));
-    llListenRemove(listenId);
-    listenId = llListen(hex, "","","");
-    handlehp();
+    integer hex = (integer)("0x" + llGetSubString(llMD5String((string)me, 0), 0, 3));
+    llListenRemove(listen_id);
+    listen_id = llListen(hex, "","","");
+    handle_hp();
 }
 default
 {
     state_entry()
     {
+        llSetLinkPrimitiveParamsFast(LINK_SET, [PRIM_TEXT, "", <1,1,1>, 1]);
         init(0);
     }
     on_rez(integer sp)
@@ -35,20 +39,21 @@ default
     {
         while(n--)
         {
-            if(llVecMag(llDetectedVel(n)) > 25 && llDetectedType(n) != 3)--hp;
+            integer fast = (llVecMag(llDetectedVel(n)) > 25);
+            integer not_avatar = (llDetectedType(n) != 3);
+            if(fast && not_avatar) --hp;
         }
-        handlehp();
+        handle_hp();
     }
     listen(integer i, string n, key k, string m)
     {
         list l = llCSV2List(m);
-        key target = llList2Key(l,0);
-        integer dmg = llList2Integer(l,1);
+        key target = llList2Key(l, 0);
+        integer dmg = llList2Integer(l, 1);
         if(target == me)
         {
             hp -= dmg;
-            if(hp > maxhp) hp = maxhp;
-            handlehp();
-        }       
-    } 
+            handle_hp();
+        }
+    }
 }
