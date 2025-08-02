@@ -92,7 +92,8 @@ integer delay=4;//If active how long does this take?
 //Link set numbers
 integer body;
 //Listen channel numbers
-integer targetchannel
+integer targetchannel;
+key target;//this is my hitbox
 default
 {
     state_entry()
